@@ -178,6 +178,73 @@ export async function initializeDatabase() {
     `);
 
     await client.query("UPDATE users SET role = 'admin' WHERE email = 'admin@codeflow.com'");
+
+    const coursesCount = await client.query('SELECT COUNT(*) FROM courses');
+    if (parseInt(coursesCount.rows[0].count) === 0) {
+      console.log('Database has 0 courses. Seeding initial curriculum...');
+      const defaultCourses = [
+        {
+          title: 'Python Mastery',
+          description: 'Master Python from fundamentals to advanced concepts. Learn variables, data structures, OOP, file handling, and build real-world projects.',
+          language: 'Python', level: 'Beginner', icon: 'terminal',
+          duration: '42 lessons · 8 weeks', lessons_count: 5, order_num: 1,
+        },
+        {
+          title: 'Web Development Bootcamp',
+          description: 'Build modern, responsive websites from scratch. Learn HTML5, CSS3, JavaScript, and responsive design principles.',
+          language: 'JavaScript', level: 'Intermediate', icon: 'language',
+          duration: '36 lessons · 7 weeks', lessons_count: 5, order_num: 2,
+        },
+        {
+          title: 'AI & Machine Learning Foundations',
+          description: 'Dive into the world of artificial intelligence. Understand neural networks, data modeling, supervised learning, and build practical AI applications.',
+          language: 'Python', level: 'Advanced', icon: 'smart_toy',
+          duration: '28 lessons · 6 weeks', lessons_count: 5, order_num: 3,
+        },
+        {
+          title: 'React & Modern Frontend',
+          description: 'Learn React from the ground up. Master components, hooks, state management, routing, and modern frontend architecture.',
+          language: 'JavaScript', level: 'Intermediate', icon: 'code_blocks',
+          duration: '32 lessons · 6 weeks', lessons_count: 5, order_num: 4,
+        },
+        {
+          title: 'Data Structures & Algorithms',
+          description: 'Master the building blocks of efficient programming. Learn arrays, linked lists, trees, graphs, sorting algorithms, and ace technical interviews.',
+          language: 'Multi', level: 'Advanced', icon: 'account_tree',
+          duration: '40 lessons · 8 weeks', lessons_count: 5, order_num: 5,
+        },
+        {
+          title: 'SQL & Database Design',
+          description: 'Learn to design, query, and optimize databases. Master SQL from basic SELECT statements to complex joins, subqueries, and database indexing.',
+          language: 'SQL', level: 'Beginner', icon: 'storage',
+          duration: '24 lessons · 5 weeks', lessons_count: 5, order_num: 6,
+        },
+      ];
+
+      for (const course of defaultCourses) {
+        const cRes = await client.query(
+          `INSERT INTO courses (title, description, language, level, icon, duration, lessons_count, order_num, enrolled_count)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+          [course.title, course.description, course.language, course.level, course.icon, course.duration, course.lessons_count, course.order_num, 142]
+        );
+        const cId = cRes.rows[0].id;
+        await client.query(
+          `INSERT INTO lessons (course_id, title, description, content, duration, order_num, xp_reward)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            cId,
+            `Introduction to ${course.title}`,
+            `Get started with the fundamentals of ${course.title} and explore core syntax and workflows.`,
+            `# Welcome to ${course.title}\n\nIn this lesson, you will learn the fundamental principles and structure of ${course.language}.\n\n## Learning Objectives\n- Understand syntax fundamentals\n- Learn key patterns\n- Execute interactive examples in the Code Playground`,
+            '15 min',
+            1,
+            50
+          ]
+        );
+      }
+      console.log('Initial curriculum auto-seeded successfully!');
+    }
+
     console.log('Database tables initialized successfully');
   } catch (err) {
     console.error('Error initializing database:', err.message);
