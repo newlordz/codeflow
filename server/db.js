@@ -1,4 +1,5 @@
 import pg from 'pg';
+import bcrypt from 'bcryptjs';
 
 const { Pool } = pg;
 
@@ -184,7 +185,53 @@ export async function initializeDatabase() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url VARCHAR(255) DEFAULT '';
     `);
 
-    await client.query("UPDATE users SET role = 'admin' WHERE email = 'admin@codeflow.com'");
+    const defaultPassword = await bcrypt.hash('password123', 10);
+
+    const demoCheck = await client.query('SELECT id FROM users WHERE email = $1', ['demo@codeflow.com']);
+    if (demoCheck.rows.length === 0) {
+      console.log('Seeding demo student account (demo@codeflow.com)...');
+      await client.query(
+        `INSERT INTO users (username, full_name, email, password, role, streak, longest_streak, xp, bio, headline)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          'demostudent',
+          'Demo Learner',
+          'demo@codeflow.com',
+          defaultPassword,
+          'student',
+          7,
+          10,
+          1450,
+          'Aspiring full-stack engineer and programming enthusiast exploring CodeFlow.',
+          'Full-Stack Developer Learner'
+        ]
+      );
+    } else {
+      await client.query('UPDATE users SET password = $1 WHERE email = $2', [defaultPassword, 'demo@codeflow.com']);
+    }
+
+    const adminCheck = await client.query('SELECT id FROM users WHERE email = $1', ['admin@codeflow.com']);
+    if (adminCheck.rows.length === 0) {
+      console.log('Seeding administrator account (admin@codeflow.com)...');
+      await client.query(
+        `INSERT INTO users (username, full_name, email, password, role, streak, longest_streak, xp, bio, headline)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          'admin',
+          'Platform Administrator',
+          'admin@codeflow.com',
+          defaultPassword,
+          'admin',
+          15,
+          20,
+          3500,
+          'Lead administrator and curriculum director at CodeFlow Academy.',
+          'Platform Administrator'
+        ]
+      );
+    } else {
+      await client.query("UPDATE users SET role = 'admin' WHERE email = 'admin@codeflow.com'");
+    }
 
     const coursesCount = await client.query('SELECT COUNT(*) FROM courses');
     if (parseInt(coursesCount.rows[0].count) === 0) {
@@ -250,6 +297,18 @@ export async function initializeDatabase() {
         );
       }
       console.log('Initial curriculum auto-seeded successfully!');
+    }
+
+    const demoUser = await client.query('SELECT id FROM users WHERE email = $1', ['demo@codeflow.com']);
+    if (demoUser.rows.length > 0) {
+      const demoId = demoUser.rows[0].id;
+      const firstCourses = await client.query('SELECT id FROM courses ORDER BY order_num ASC LIMIT 2');
+      for (const c of firstCourses.rows) {
+        const enCheck = await client.query('SELECT id FROM user_courses WHERE user_id = $1 AND course_id = $2', [demoId, c.id]);
+        if (enCheck.rows.length === 0) {
+          await client.query('INSERT INTO user_courses (user_id, course_id) VALUES ($1, $2)', [demoId, c.id]);
+        }
+      }
     }
 
     console.log('Database tables initialized successfully');
