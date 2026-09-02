@@ -17,7 +17,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
         COALESCE(up.completed, false) as completed,
         up.score,
         up.completed_at,
-        c.title as course_title
+        c.title as course_title,
+        c.language as course_language
       FROM lessons l
       JOIN courses c ON l.course_id = c.id
       LEFT JOIN user_progress up ON l.id = up.lesson_id AND up.user_id = $2

@@ -54,13 +54,14 @@ app.get('*', (req, res) => {
 });
 
 async function start() {
+  // Trigger auto-restart
   try {
     await initializeDatabase();
     app.listen(PORT, () => {
       console.log(`CodeFlow server running on port ${PORT}`);
     });
-  } catch (err) {
-    console.error('Failed to start server:', err);
+  } catch (error) {
+    console.error('Failed to start server:', error);
     process.exit(1);
   }
 }
