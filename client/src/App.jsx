@@ -20,6 +20,7 @@ import QAPage from './pages/QAPage';
 import Landing from './pages/Landing';
 import Admin from './pages/Admin';
 import Profile from './pages/Profile';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -86,7 +87,8 @@ export default function App() {
           },
         }}
       />
-      <AnimatePresence mode="wait">
+      <ErrorBoundary>
+        <AnimatePresence mode="wait">
         <Routes>
           <Route
             path="/"
@@ -255,6 +257,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
+      </ErrorBoundary>
     </>
   );
 }

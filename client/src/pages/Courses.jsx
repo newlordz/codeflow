@@ -19,6 +19,7 @@ import {
   Play,
   ArrowRight,
   Trash2,
+  Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApi } from '../hooks/useApi';
