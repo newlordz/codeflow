@@ -1,0 +1,53 @@
+import express from 'express';
+import cors from 'cors';
+import { initializeDatabase } from './db.js';
+import authRoutes from './routes/auth.js';
+import coursesRoutes from './routes/courses.js';
+import lessonsRoutes from './routes/lessons.js';
+import quizzesRoutes from './routes/quizzes.js';
+import notesRoutes from './routes/notes.js';
+import notificationsRoutes from './routes/notifications.js';
+import qaRoutes from './routes/qa.js';
+import streaksRoutes from './routes/streaks.js';
+import certificatesRoutes from './routes/certificates.js';
+import dashboardRoutes from './routes/dashboard.js';
+import adminRoutes from './routes/admin.js';
+import runnerRoutes from './routes/runner.js';
+import { authMiddleware } from './middleware/auth.js';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/runner', runnerRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/courses', authMiddleware, coursesRoutes);
+app.use('/api/lessons', authMiddleware, lessonsRoutes);
+app.use('/api/quizzes', authMiddleware, quizzesRoutes);
+app.use('/api/notes', authMiddleware, notesRoutes);
+app.use('/api/notifications', authMiddleware, notificationsRoutes);
+app.use('/api/qa', authMiddleware, qaRoutes);
+app.use('/api/streaks', authMiddleware, streaksRoutes);
+app.use('/api/certificates', authMiddleware, certificatesRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+async function start() {
+  try {
+    await initializeDatabase();
+    app.listen(PORT, () => {
+      console.log(`CodeFlow server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+start();
