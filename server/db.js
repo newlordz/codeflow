@@ -1,5 +1,6 @@
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
+import { defaultCourses } from './curriculum.js';
 
 const { Pool } = pg;
 
@@ -235,88 +236,6 @@ export async function initializeDatabase() {
       await client.query("UPDATE users SET role = 'admin' WHERE email = 'admin@codeflow.com'");
     }
 
-    const defaultCourses = [
-      {
-        title: 'Python Mastery',
-        description: 'Master Python from fundamentals to advanced concepts. Learn variables, data structures, OOP, file handling, and build real-world projects.',
-        language: 'Python', level: 'Beginner', icon: 'terminal',
-        duration: '42 lessons · 8 weeks', lessons_count: 6, order_num: 1,
-        lessons: [
-          { title: 'Welcome to Python', description: 'Introduction to Python and why it is the most popular language.', content: '# Welcome to Python\n\nPython is a high-level, interpreted programming language known for its clean, readable syntax.\n\n## First Program\n```python\nprint("Hello, CodeFlow!")\n```\n\nRun this in the Code Playground to test execution!', duration: '15 min', xp: 50 },
-          { title: 'Variables & Data Types', description: 'Learn numbers, strings, booleans, and type conversion.', content: '# Variables & Data Types\n\nVariables store data in memory without manual memory management.\n\n```python\nname = "Alice"\nage = 24\nheight = 5.9\nis_student = True\n\nprint(f"{name} is {age} years old.")\n```', duration: '20 min', xp: 60 },
-          { title: 'Control Flow (If/Else)', description: 'Master conditionals, logical operators, and branching.', content: '# Control Flow\n\nControl which code executes based on true/false conditions.\n\n```python\nscore = 88\nif score >= 90:\n    print("Grade: A")\nelif score >= 80:\n    print("Grade: B")\nelse:\n    print("Keep practicing!")\n```', duration: '20 min', xp: 60 },
-          { title: 'Loops & Iterations', description: 'Repeat operations with for and while loops.', content: '# Loops & Iterations\n\n```python\nfruits = ["apple", "banana", "cherry"]\nfor fruit in fruits:\n    print(f"I love {fruit}!")\n```', duration: '25 min', xp: 70 },
-          { title: 'Functions & Scope', description: 'Write reusable, modular code with parameters and return values.', content: '# Functions & Scope\n\n```python\ndef calculate_area(width, height):\n    """Calculates rectangular area"""\n    return width * height\n\nprint(calculate_area(5, 10))\n```', duration: '25 min', xp: 70 },
-          { title: 'Object-Oriented Programming', description: 'Classes, objects, methods, and inheritance in Python.', content: '# Object-Oriented Programming (OOP)\n\n```python\nclass Developer:\n    def __init__(self, name, language):\n        self.name = name\n        self.language = language\n\n    def code(self):\n        return f"{self.name} is writing {self.language}!"\n\ndev = Developer("Enoch", "Python")\nprint(dev.code())\n```', duration: '30 min', xp: 80 },
-        ]
-      },
-      {
-        title: 'Web Development Bootcamp',
-        description: 'Build modern, responsive websites from scratch. Learn HTML5, CSS3, JavaScript, and responsive design principles.',
-        language: 'JavaScript', level: 'Intermediate', icon: 'language',
-        duration: '36 lessons · 7 weeks', lessons_count: 5, order_num: 2,
-        lessons: [
-          { title: 'Modern HTML5 & Semantic Elements', description: 'Master semantic layout tags, forms, and accessibility.', content: '# Modern HTML5\n\nSemantic markup improves SEO, readability, and accessibility.\n\n```html\n<header>\n  <h1>CodeFlow Academy</h1>\n  <nav><a href="/">Home</a></nav>\n</header>\n<main>\n  <article>\n    <h2>Semantic HTML</h2>\n    <p>Always use semantic elements!</p>\n  </article>\n</main>\n```', duration: '20 min', xp: 50 },
-          { title: 'CSS3 Styling & Flexbox', description: 'Layout modern interfaces with flexible box layouts.', content: '# CSS3 Flexbox\n\n```css\n.container {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1.5rem;\n}\n```', duration: '25 min', xp: 60 },
-          { title: 'CSS Grid & Responsive Design', description: 'Two-dimensional grid layouts and mobile media queries.', content: '# CSS Grid & Media Queries\n\n```css\n.grid-layout {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));\n  gap: 1rem;\n}\n```', duration: '25 min', xp: 60 },
-          { title: 'JavaScript DOM Manipulation', description: 'Select elements, listen to events, and update the UI.', content: '# DOM Manipulation\n\n```javascript\nconst btn = document.querySelector("#btn");\nbtn.addEventListener("click", () => {\n  document.body.classList.toggle("dark");\n});\n```', duration: '30 min', xp: 70 },
-          { title: 'Modern Async JavaScript & APIs', description: 'Promises, fetch, async/await, and REST APIs.', content: '# Async JavaScript & Fetch API\n\n```javascript\nasync function loadUsers() {\n  const res = await fetch("/api/users");\n  const users = await res.json();\n  console.log(users);\n}\n```', duration: '30 min', xp: 80 },
-        ]
-      },
-      {
-        title: 'AI & Machine Learning Foundations',
-        description: 'Dive into the world of artificial intelligence. Understand neural networks, data modeling, supervised learning, and build practical AI applications.',
-        language: 'Python', level: 'Advanced', icon: 'smart_toy',
-        duration: '28 lessons · 6 weeks', lessons_count: 5, order_num: 3,
-        lessons: [
-          { title: 'Introduction to AI & Machine Learning', description: 'Core concepts: Supervised vs Unsupervised vs Reinforcement learning.', content: '# Intro to AI & Machine Learning\n\nMachine learning is the study of algorithms that improve automatically through experience and data.', duration: '20 min', xp: 50 },
-          { title: 'Python for Data Science (NumPy & Pandas)', description: 'Matrix operations and dataframe manipulations.', content: '# NumPy & Pandas\n\n```python\nimport numpy as np\n\ndata = np.array([1, 2, 3, 4, 5])\nprint("Mean:", np.mean(data))\nprint("Std:", np.std(data))\n```', duration: '25 min', xp: 60 },
-          { title: 'Supervised Learning & Linear Regression', description: 'Predict continuous numerical outcomes from input features.', content: '# Supervised Learning\n\n```python\n# Linear model: y = mx + b\ndef predict(x, weight, bias):\n    return weight * x + bias\n```', duration: '30 min', xp: 70 },
-          { title: 'Neural Networks & Deep Learning', description: 'Neurons, weights, activation functions, and backpropagation.', content: '# Neural Networks Architecture\n\nLayers of artificial neurons process features and learn complex patterns.', duration: '35 min', xp: 80 },
-          { title: 'Evaluating Models & Avoiding Overfitting', description: 'Precision, recall, train/test split, and regularization.', content: '# Model Evaluation\n\nAlways evaluate model accuracy on an unseen validation dataset to prevent overfitting.', duration: '30 min', xp: 80 },
-        ]
-      },
-      {
-        title: 'React & Modern Frontend',
-        description: 'Learn React from the ground up. Master components, hooks, state management, routing, and modern frontend architecture.',
-        language: 'JavaScript', level: 'Intermediate', icon: 'code_blocks',
-        duration: '32 lessons · 6 weeks', lessons_count: 5, order_num: 4,
-        lessons: [
-          { title: 'React Fundamentals & JSX Syntax', description: 'Declarative component architecture and JSX.', content: '# React Fundamentals\n\n```jsx\nexport function Greeting({ name }) {\n  return <h1>Hello, {name}!</h1>;\n}\n```', duration: '20 min', xp: 50 },
-          { title: 'Component State with useState', description: 'Track dynamic values and trigger UI re-renders.', content: '# useState Hook\n\n```jsx\nconst [count, setCount] = useState(0);\nreturn <button onClick={() => setCount(c => c + 1)}>{count}</button>;\n```', duration: '25 min', xp: 60 },
-          { title: 'Side Effects with useEffect', description: 'Data fetching, subscriptions, and DOM side effects.', content: '# useEffect Hook\n\n```jsx\nuseEffect(() => {\n  document.title = `Clicked ${count} times`;\n}, [count]);\n```', duration: '25 min', xp: 60 },
-          { title: 'Client-side Routing with React Router', description: 'Build lightning-fast single page web applications.', content: '# React Router\n\n```jsx\n<Routes>\n  <Route path="/" element={<Home />} />\n  <Route path="/courses" element={<Courses />} />\n</Routes>\n```', duration: '30 min', xp: 70 },
-          { title: 'Building Custom Hooks', description: 'Extract reusable component logic into custom hooks.', content: '# Custom Hooks\n\n```jsx\nfunction useWindowWidth() {\n  const [width, setWidth] = useState(window.innerWidth);\n  // Listen to resize\n  return width;\n}\n```', duration: '30 min', xp: 80 },
-        ]
-      },
-      {
-        title: 'Data Structures & Algorithms',
-        description: 'Master the building blocks of efficient programming. Learn arrays, linked lists, trees, graphs, sorting algorithms, and ace technical interviews.',
-        language: 'Multi', level: 'Advanced', icon: 'account_tree',
-        duration: '40 lessons · 8 weeks', lessons_count: 5, order_num: 5,
-        lessons: [
-          { title: 'Big-O Notation & Complexity Analysis', description: 'Time and space complexity of computer algorithms.', content: '# Big-O Notation\n\n- O(1): Constant time\n- O(log n): Binary search\n- O(n): Linear scan\n- O(n log n): Efficient sorting\n- O(n^2): Nested loops', duration: '20 min', xp: 50 },
-          { title: 'Arrays & Dynamic Arrays', description: 'Contiguous memory, indexing, and amortized insertion.', content: '# Arrays & Vectors\n\nFast O(1) random index access with O(n) insertions and deletions.', duration: '25 min', xp: 60 },
-          { title: 'Linked Lists & Stacks', description: 'Node-based structures, pointer manipulation, and LIFO ordering.', content: '# Stacks (LIFO)\n\n```python\nstack = []\nstack.append(1) # Push\ntop = stack.pop() # Pop\n```', duration: '25 min', xp: 60 },
-          { title: 'Binary Search Trees & Traversal', description: 'Hierarchical data structures, DFS, and BFS search.', content: '# Binary Search Trees\n\nIn-order traversal of a BST yields elements in sorted order.', duration: '30 min', xp: 70 },
-          { title: 'Dynamic Programming & Memoization', description: 'Break complex problems into overlapping subproblems.', content: '# Dynamic Programming\n\n```python\n# Fibonacci with memoization\ndef fib(n, memo={}):\n    if n <= 1: return n\n    if n not in memo:\n        memo[n] = fib(n - 1, memo) + fib(n - 2, memo)\n    return memo[n]\n```', duration: '35 min', xp: 80 },
-        ]
-      },
-      {
-        title: 'SQL & Database Design',
-        description: 'Learn to design, query, and optimize databases. Master SQL from basic SELECT statements to complex joins, subqueries, and database indexing.',
-        language: 'SQL', level: 'Beginner', icon: 'storage',
-        duration: '24 lessons · 5 weeks', lessons_count: 5, order_num: 6,
-        lessons: [
-          { title: 'Relational Database Fundamentals', description: 'Tables, rows, columns, primary keys, and foreign keys.', content: '# Relational Databases\n\nDatabases organize information into tables with strictly typed schemas and relations.', duration: '20 min', xp: 50 },
-          { title: 'SELECT Queries, Filtering & Ordering', description: 'SELECT, WHERE, LIKE, IN, and ORDER BY clauses.', content: '# SQL SELECT\n\n```sql\nSELECT title, duration \nFROM courses \nWHERE level = \'Beginner\' \nORDER BY order_num ASC;\n```', duration: '25 min', xp: 60 },
-          { title: 'SQL Joins (INNER, LEFT, RIGHT)', description: 'Combine data across multiple related tables.', content: '# SQL Joins\n\n```sql\nSELECT u.username, c.title\nFROM user_courses uc\nJOIN users u ON uc.user_id = u.id\nJOIN courses c ON uc.course_id = c.id;\n```', duration: '30 min', xp: 70 },
-          { title: 'Aggregations & GROUP BY', description: 'COUNT, SUM, AVG, MAX, MIN, and HAVING filters.', content: '# Aggregations\n\n```sql\nSELECT language, COUNT(*) as course_count\nFROM courses\nGROUP BY language\nHAVING COUNT(*) > 0;\n```', duration: '25 min', xp: 60 },
-          { title: 'Indexes & Query Optimization', description: 'B-Tree indexes, execution plans, and performance tuning.', content: '# Indexes & Performance\n\n```sql\nCREATE INDEX idx_courses_level ON courses(level);\nEXPLAIN ANALYZE SELECT * FROM courses WHERE level = \'Beginner\';\n```', duration: '30 min', xp: 80 },
-        ]
-      },
-    ];
-
     for (const course of defaultCourses) {
       const existing = await client.query('SELECT id FROM courses WHERE title = $1', [course.title]);
       let cId;
@@ -329,6 +248,10 @@ export async function initializeDatabase() {
         cId = cRes.rows[0].id;
       } else {
         cId = existing.rows[0].id;
+        await client.query(
+          'UPDATE courses SET level = $1, order_num = $2, duration = $3, language = $4, lessons_count = $5 WHERE id = $6',
+          [course.level, course.order_num, course.duration, course.language, course.lessons.length, cId]
+        );
       }
 
       // Check lessons count for this course
@@ -347,7 +270,7 @@ export async function initializeDatabase() {
         }
       }
     }
-    console.log('All 6 courses and multi-lesson curriculum verified and synchronized!');
+    console.log('All 18 courses across Beginner, Intermediate, and Advanced tiers synchronized!');
 
     const demoUser = await client.query('SELECT id FROM users WHERE email = $1', ['demo@codeflow.com']);
     if (demoUser.rows.length > 0) {

@@ -25,21 +25,31 @@ import { useApi } from '../hooks/useApi';
 import GlassPanel from '../components/GlassPanel';
 import ProgressBar from '../components/ProgressBar';
 
-const languages = ['All', 'Python', 'JavaScript', 'SQL'];
+const languages = ['All', 'Python', 'JavaScript', 'TypeScript', 'SQL', 'C++', 'Go'];
 const levels = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 const enrollmentFilters = ['All', 'My Enrolled Courses', 'Available to Enroll'];
 
-function CourseIcon({ icon, title }) {
+function CourseIcon({ icon, title, language }) {
   const t = (title || '').toLowerCase();
   const i = (icon || '').toLowerCase();
+  const lang = (language || '').toLowerCase();
 
   let IconComp = Terminal;
   let gradient = 'from-blue-600 to-indigo-600 shadow-blue-500/25';
 
-  if (i === 'terminal' || t.includes('python')) {
+  if (i === 'terminal' || lang.includes('python') || t.includes('python')) {
     IconComp = Terminal;
     gradient = 'from-blue-600 to-indigo-600 shadow-blue-500/25';
-  } else if (i === 'language' || t.includes('web') || t.includes('bootcamp')) {
+  } else if (lang.includes('typescript') || t.includes('typescript')) {
+    IconComp = Code2;
+    gradient = 'from-sky-500 to-blue-700 shadow-blue-500/25';
+  } else if (lang.includes('c++') || t.includes('c++') || t.includes('systems')) {
+    IconComp = Code2;
+    gradient = 'from-indigo-600 to-violet-800 shadow-indigo-500/25';
+  } else if (lang.includes('go') || t.includes('go ') || t.includes('golang')) {
+    IconComp = Zap;
+    gradient = 'from-cyan-500 to-teal-600 shadow-cyan-500/25';
+  } else if (i === 'language' || lang.includes('javascript') || t.includes('web') || t.includes('bootcamp')) {
     IconComp = Globe;
     gradient = 'from-amber-500 to-orange-500 shadow-amber-500/25';
   } else if (i === 'smart_toy' || t.includes('ai') || t.includes('machine learning')) {
@@ -51,7 +61,7 @@ function CourseIcon({ icon, title }) {
   } else if (i === 'account_tree' || t.includes('algorithm') || t.includes('data structure')) {
     IconComp = GitBranch;
     gradient = 'from-emerald-500 to-teal-600 shadow-emerald-500/25';
-  } else if (i === 'storage' || t.includes('sql') || t.includes('database')) {
+  } else if (i === 'storage' || lang.includes('sql') || t.includes('database')) {
     IconComp = Database;
     gradient = 'from-rose-500 to-pink-600 shadow-rose-500/25';
   } else {
@@ -312,7 +322,7 @@ export default function Courses() {
                 >
                   {/* Top row: Icon + Badges */}
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <CourseIcon icon={course.icon} title={course.title} />
+                    <CourseIcon icon={course.icon} title={course.title} language={course.language} />
 
                     <div className="flex flex-col items-end gap-1.5">
                       <div className="flex items-center gap-1.5">
