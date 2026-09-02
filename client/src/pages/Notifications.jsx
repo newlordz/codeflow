@@ -53,7 +53,10 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     try {
       const data = await get('/notifications');
-      setNotifications(data.notifications || data || fallbackNotifications);
+      const list = data?.notifications || (Array.isArray(data) ? data : fallbackNotifications);
+      setNotifications(list);
+      const unread = list.filter((n) => !n.read).length;
+      window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: unread } }));
     } catch {
       setNotifications(fallbackNotifications);
     } finally {
@@ -62,26 +65,32 @@ export default function Notifications() {
   };
 
   const handleMarkRead = async (id) => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      const newUnread = updated.filter((n) => !n.read).length;
+      window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: newUnread } }));
+      return updated;
+    });
+
     try {
       await put(`/notifications/${id}/read`);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
-    } catch {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
+    } catch (err) {
+      console.error('Failed to mark notification as read on server:', err);
     }
   };
 
   const handleMarkAllRead = async () => {
+    // 1. Instantly mark all as read in local state
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    // 2. Instantly clear unread count in navbar
+    window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { count: 0 } }));
+    toast.success('All notifications marked as read', { icon: '✓' });
+
+    // 3. Persist to server
     try {
       await post('/notifications/mark-all-read');
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      toast.success('All marked as read');
-    } catch {
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      toast.success('All marked as read');
+    } catch (err) {
+      console.error('Failed to mark all read on server:', err);
     }
   };
 
@@ -138,18 +147,30 @@ export default function Notifications() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-on-surface mb-1">Notifications</h1>
-          <p className="text-on-surface-variant text-sm">
-            {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-on-surface-variant text-sm">
+              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+            </p>
+            {unreadCount === 0 && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                ✓ All Read
+              </span>
+            )}
+          </div>
         </div>
-        {unreadCount > 0 && (
+        {unreadCount > 0 ? (
           <button
             onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm glass-panel text-on-surface-variant hover:text-on-surface rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm btn-primary rounded-xl transition-all shadow-xs"
           >
             <CheckCheck size={16} />
-            Mark all read
+            <span>Mark all as read</span>
           </button>
+        ) : (
+          <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium px-3 py-1.5 bg-surface-container/50 border border-outline-variant/30 rounded-xl">
+            <CheckCheck size={14} className="text-emerald-400" />
+            <span>All read</span>
+          </div>
         )}
       </div>
 

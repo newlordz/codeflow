@@ -32,7 +32,16 @@ router.put('/:id/read', authMiddleware, async (req, res) => {
 router.post('/mark-all-read', authMiddleware, async (req, res) => {
   try {
     await query('UPDATE notifications SET read = true WHERE user_id = $1', [req.user.id]);
-    res.json({ message: 'All marked as read' });
+    res.json({ message: 'All marked as read', unreadCount: 0 });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/mark-all-read', authMiddleware, async (req, res) => {
+  try {
+    await query('UPDATE notifications SET read = true WHERE user_id = $1', [req.user.id]);
+    res.json({ message: 'All marked as read', unreadCount: 0 });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

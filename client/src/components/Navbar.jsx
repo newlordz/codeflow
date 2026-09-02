@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
@@ -22,6 +22,7 @@ export default function Navbar({ onMenuToggle }) {
   const { theme } = useTheme();
   const { get } = useApi();
   const navigate = useNavigate();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
   const dropdownRef = useRef(null);
@@ -38,10 +39,22 @@ export default function Navbar({ onMenuToggle }) {
         setNotifCount(0);
       }
     }
+
     if (user) {
       fetchUnreadCount();
     }
-  }, [get, user]);
+
+    const handleNotifsUpdated = (event) => {
+      if (typeof event.detail?.count === 'number') {
+        setNotifCount(event.detail.count);
+      } else {
+        fetchUnreadCount();
+      }
+    };
+
+    window.addEventListener('notifications-updated', handleNotifsUpdated);
+    return () => window.removeEventListener('notifications-updated', handleNotifsUpdated);
+  }, [get, user, location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(e) {
