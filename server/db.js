@@ -1,5 +1,7 @@
 import pg from 'pg';
 
+const { Pool } = pg;
+
 const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT);
 
 const poolConfig = {

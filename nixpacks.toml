@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "python312"]
+
+[phases.install]
+cmds = [
+  "npm install",
+  "npm install --prefix server",
+  "npm install --include=dev --prefix client"
+]
+
+[phases.build]
+cmds = [
+  "npm run build --prefix client"
+]
+
+[start]
+cmd = "node server/index.js"
