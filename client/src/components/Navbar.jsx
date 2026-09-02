@@ -128,9 +128,17 @@ export default function Navbar({ onMenuToggle }) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 p-1.5 rounded-md hover:bg-surface-container-high transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-tertiary flex items-center justify-center text-on-primary font-semibold text-xs">
-                {initials}
-              </div>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.username || 'User'}
+                  className="w-8 h-8 rounded-full object-cover border border-primary/30 shadow-xs"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-tertiary flex items-center justify-center text-on-primary font-semibold text-xs">
+                  {initials}
+                </div>
+              )}
               <ChevronDown
                 size={14}
                 className={`text-on-surface-variant transition-transform duration-200 ${

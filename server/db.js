@@ -175,6 +175,13 @@ export async function initializeDatabase() {
       );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'student';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(255) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS headline VARCHAR(255) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS github_url VARCHAR(255) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(255) DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url VARCHAR(255) DEFAULT '';
     `);
 
     await client.query("UPDATE users SET role = 'admin' WHERE email = 'admin@codeflow.com'");

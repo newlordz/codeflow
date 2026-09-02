@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, username, email, role, avatar, streak, longest_streak, theme, xp, bio, joined_at FROM users WHERE id = $1',
+      'SELECT id, username, email, role, avatar, phone, full_name, location, headline, github_url, linkedin_url, website_url, streak, longest_streak, theme, xp, bio, joined_at FROM users WHERE id = $1',
       [req.user.id]
     );
     res.json(result.rows[0]);
@@ -83,15 +83,34 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 router.put('/me', authMiddleware, async (req, res) => {
   try {
-    const { username, bio, theme, avatar } = req.body;
+    const {
+      username,
+      bio,
+      theme,
+      avatar,
+      phone,
+      full_name,
+      location,
+      headline,
+      github_url,
+      linkedin_url,
+      website_url,
+    } = req.body;
     const updates = [];
     const values = [];
     let idx = 1;
 
-    if (username) { updates.push(`username = $${idx++}`); values.push(username); }
+    if (username !== undefined) { updates.push(`username = $${idx++}`); values.push(username.trim()); }
     if (bio !== undefined) { updates.push(`bio = $${idx++}`); values.push(bio); }
-    if (theme) { updates.push(`theme = $${idx++}`); values.push(theme); }
+    if (theme !== undefined) { updates.push(`theme = $${idx++}`); values.push(theme); }
     if (avatar !== undefined) { updates.push(`avatar = $${idx++}`); values.push(avatar); }
+    if (phone !== undefined) { updates.push(`phone = $${idx++}`); values.push(phone); }
+    if (full_name !== undefined) { updates.push(`full_name = $${idx++}`); values.push(full_name); }
+    if (location !== undefined) { updates.push(`location = $${idx++}`); values.push(location); }
+    if (headline !== undefined) { updates.push(`headline = $${idx++}`); values.push(headline); }
+    if (github_url !== undefined) { updates.push(`github_url = $${idx++}`); values.push(github_url); }
+    if (linkedin_url !== undefined) { updates.push(`linkedin_url = $${idx++}`); values.push(linkedin_url); }
+    if (website_url !== undefined) { updates.push(`website_url = $${idx++}`); values.push(website_url); }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
@@ -99,7 +118,7 @@ router.put('/me', authMiddleware, async (req, res) => {
 
     values.push(req.user.id);
     const result = await query(
-      `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, username, email, role, avatar, streak, longest_streak, theme, xp, bio, joined_at`,
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, username, email, role, avatar, phone, full_name, location, headline, github_url, linkedin_url, website_url, streak, longest_streak, theme, xp, bio, joined_at`,
       values
     );
     res.json(result.rows[0]);

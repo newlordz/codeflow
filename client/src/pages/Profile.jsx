@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -19,6 +19,15 @@ import {
   Sun,
   Moon,
   Mail,
+  Camera,
+  Trash2,
+  Phone,
+  MapPin,
+  Briefcase,
+  Globe,
+  Github,
+  Linkedin,
+  ExternalLink,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,11 +39,20 @@ export default function Profile() {
   const { user, setUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { put } = useApi();
+  const fileInputRef = useRef(null);
 
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'settings' | 'preferences'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'edit' | 'security' | 'preferences'
 
   // Profile fields
+  const [avatar, setAvatar] = useState(user?.avatar || '');
   const [username, setUsername] = useState(user?.username || '');
+  const [fullName, setFullName] = useState(user?.full_name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [headline, setHeadline] = useState(user?.headline || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [githubUrl, setGithubUrl] = useState(user?.github_url || '');
+  const [linkedinUrl, setLinkedinUrl] = useState(user?.linkedin_url || '');
+  const [websiteUrl, setWebsiteUrl] = useState(user?.website_url || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [savingProfile, setSavingProfile] = useState(false);
 
@@ -46,7 +64,65 @@ export default function Profile() {
   const [showNewPass, setShowNewPass] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
-  const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : 'CF';
+  const initials = (user?.full_name || user?.username || 'CF')
+    .slice(0, 2)
+    .toUpperCase();
+
+  // Compress & resize image to 256x256 WebP before uploading
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file (PNG, JPG, WebP)');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setAvatar(dataUrl);
+        toast.success('Photo ready! Click "Save Changes" to apply.', { icon: '📸' });
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    toast.success('Photo removed. Save changes to update profile.', { icon: '🗑️' });
+  };
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -56,10 +132,25 @@ export default function Profile() {
     }
     setSavingProfile(true);
     try {
-      const updated = await put('/auth/me', { username, bio });
-      setUser((prev) => ({ ...prev, ...updated }));
-      localStorage.setItem('codeflow-user', JSON.stringify({ ...user, ...updated }));
+      const payload = {
+        username: username.trim(),
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        headline: headline.trim(),
+        location: location.trim(),
+        github_url: githubUrl.trim(),
+        linkedin_url: linkedinUrl.trim(),
+        website_url: websiteUrl.trim(),
+        bio: bio.trim(),
+        avatar: avatar || null,
+      };
+
+      const updated = await put('/auth/me', payload);
+      const mergedUser = { ...user, ...updated };
+      setUser(mergedUser);
+      localStorage.setItem('codeflow-user', JSON.stringify(mergedUser));
       toast.success('Profile updated successfully!', { icon: '✨' });
+      setActiveTab('profile');
     } catch (err) {
       toast.error(err.message || 'Failed to update profile');
     } finally {
@@ -103,49 +194,147 @@ export default function Profile() {
       exit={{ opacity: 0 }}
       className="space-y-8 pb-16 max-w-5xl mx-auto"
     >
-      {/* Top Banner Card */}
-      <div className="glass-panel shadow-premium rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-[100px] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(77,142,255,0.15), transparent 70%)' }} />
+      {/* Top Banner Hero Card */}
+      <div className="glass-panel shadow-premium rounded-3xl p-6 sm:p-8 relative overflow-hidden border border-outline-variant/30">
+        <div
+          className="absolute -top-24 -right-24 w-80 h-80 rounded-full blur-[110px] pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(77,142,255,0.18), transparent 70%)' }}
+        />
 
         <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-blue-500/25 flex-shrink-0">
-            {initials}
+          {/* Avatar with Camera Overlay */}
+          <div className="relative group flex-shrink-0">
+            {avatar || user?.avatar ? (
+              <img
+                src={avatar || user?.avatar}
+                alt={user?.username}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl object-cover shadow-xl border-2 border-primary/30"
+              />
+            ) : (
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-3xl shadow-xl shadow-blue-500/20">
+                {initials}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-primary text-white shadow-lg hover:bg-primary/90 transition-transform active:scale-95 border-2 border-surface"
+              title="Upload profile photo"
+            >
+              <Camera size={16} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoSelect}
+              className="hidden"
+            />
           </div>
 
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-on-surface display-tight">
-                {user?.username || 'Developer'}
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-on-surface display-tight truncate">
+                {user?.full_name || user?.username || 'Developer'}
               </h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold ${
-                user?.role === 'admin'
-                  ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20'
-                  : 'bg-primary/10 text-primary border border-primary/20'
-              }`}>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold ${
+                  user?.role === 'admin'
+                    ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/25'
+                    : 'bg-primary/10 text-primary border border-primary/20'
+                }`}
+              >
                 {user?.role === 'admin' ? 'Administrator' : 'Student Learner'}
               </span>
             </div>
 
-            <p className="text-sm text-on-surface-variant font-mono mb-4">{user?.email}</p>
+            {user?.headline && (
+              <p className="text-sm font-medium text-primary mb-2 flex items-center justify-center sm:justify-start gap-1.5">
+                <Briefcase size={14} />
+                <span>{user.headline}</span>
+              </p>
+            )}
 
-            <p className="text-sm text-on-surface-variant max-w-xl leading-relaxed">
-              {user?.bio || 'No bio written yet. Share your coding goals, favorite languages, and achievements!'}
+            <p className="text-xs text-on-surface-variant font-mono mb-4">
+              @{user?.username} &bull; {user?.email}
             </p>
+
+            {/* Quick Contact & Social Badges */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 text-xs text-on-surface-variant">
+              {user?.phone && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container border border-outline-variant/30 font-mono">
+                  <Phone size={12} className="text-primary" />
+                  {user.phone}
+                </span>
+              )}
+              {user?.location && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container border border-outline-variant/30">
+                  <MapPin size={12} className="text-rose-500" />
+                  {user.location}
+                </span>
+              )}
+              {user?.github_url && (
+                <a
+                  href={user.github_url.startsWith('http') ? user.github_url : `https://${user.github_url}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface transition-colors"
+                >
+                  <Github size={12} />
+                  <span>GitHub</span>
+                  <ExternalLink size={10} className="text-on-surface-variant/60" />
+                </a>
+              )}
+              {user?.linkedin_url && (
+                <a
+                  href={user.linkedin_url.startsWith('http') ? user.linkedin_url : `https://${user.linkedin_url}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface transition-colors"
+                >
+                  <Linkedin size={12} className="text-blue-500" />
+                  <span>LinkedIn</span>
+                  <ExternalLink size={10} className="text-on-surface-variant/60" />
+                </a>
+              )}
+              {user?.website_url && (
+                <a
+                  href={user.website_url.startsWith('http') ? user.website_url : `https://${user.website_url}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface transition-colors"
+                >
+                  <Globe size={12} className="text-emerald-500" />
+                  <span>Portfolio</span>
+                  <ExternalLink size={10} className="text-on-surface-variant/60" />
+                </a>
+              )}
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('edit')}
+            className="btn-primary px-5 py-2 text-xs rounded-xl flex items-center gap-1.5 shadow-sm"
+          >
+            <span>Edit Profile Details</span>
+          </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-outline-variant/30 gap-6 text-sm font-semibold">
+      <div className="flex border-b border-outline-variant/30 gap-6 text-sm font-semibold overflow-x-auto pb-px">
         {[
-          { key: 'profile', label: 'Profile Overview', icon: User },
-          { key: 'settings', label: 'Account & Security', icon: Settings },
+          { key: 'profile', label: 'Overview', icon: User },
+          { key: 'edit', label: 'Edit Profile & Info', icon: Camera },
+          { key: 'security', label: 'Security & Password', icon: Key },
           { key: 'preferences', label: 'Preferences', icon: Sparkles },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 pb-3 transition-colors relative ${
+            className={`flex items-center gap-2 pb-3 transition-colors relative flex-shrink-0 ${
               activeTab === tab.key
                 ? 'text-primary'
                 : 'text-on-surface-variant hover:text-on-surface'
@@ -163,7 +352,7 @@ export default function Profile() {
         ))}
       </div>
 
-      {/* TAB 1: PROFILE OVERVIEW */}
+      {/* TAB 1: OVERVIEW */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
           {/* Milestone Metrics */}
@@ -173,8 +362,13 @@ export default function Profile() {
                 <span className="text-xs font-mono uppercase text-on-surface-variant">Daily Streak</span>
                 <Flame size={18} className="text-amber-500" />
               </div>
-              <p className="text-3xl font-bold font-mono text-on-surface">{user?.streak || 0} <span className="text-xs font-normal text-on-surface-variant">days</span></p>
-              <p className="text-xs text-on-surface-variant mt-1 font-mono">Best: {user?.longest_streak || user?.streak || 0}d</p>
+              <p className="text-3xl font-bold font-mono text-on-surface">
+                {user?.streak || 0}{' '}
+                <span className="text-xs font-normal text-on-surface-variant">days</span>
+              </p>
+              <p className="text-xs text-on-surface-variant mt-1 font-mono">
+                Best: {user?.longest_streak || user?.streak || 0}d
+              </p>
             </GlassPanel>
 
             <GlassPanel className="p-5 rounded-2xl" hover>
@@ -207,79 +401,246 @@ export default function Profile() {
             </GlassPanel>
           </div>
 
-          {/* Edit Profile Form */}
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl">
-            <h3 className="text-lg font-bold text-on-surface mb-4">Edit Profile Info</h3>
-            <form onSubmit={handleSaveProfile} className="space-y-4">
+          {/* About & Bio Card */}
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-outline-variant/25">
+            <h3 className="text-lg font-bold text-on-surface mb-3">About Me</h3>
+            <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
+              {user?.bio ||
+                'No bio added yet. Click "Edit Profile & Info" above to add your developer story, skills, phone number, and social links!'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: EDIT PROFILE & INFO */}
+      {activeTab === 'edit' && (
+        <form onSubmit={handleSaveProfile} className="space-y-6">
+          {/* Avatar Edit Section */}
+          <div className="glass-panel p-6 rounded-2xl border border-outline-variant/30">
+            <h3 className="text-base font-bold text-on-surface mb-3 flex items-center gap-2">
+              <Camera size={18} className="text-primary" />
+              Profile Photo
+            </h3>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-surface-container flex items-center justify-center border border-outline-variant/40 shadow-sm flex-shrink-0">
+                {avatar ? (
+                  <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl">
+                    {initials}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-primary px-4 py-2 text-xs rounded-xl flex items-center gap-1.5 shadow-sm"
+                >
+                  <Camera size={14} />
+                  <span>Choose Photo</span>
+                </button>
+                {avatar && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="btn-ghost text-xs text-rose-500 hover:bg-rose-500/10 px-3.5 py-2 rounded-xl border border-rose-500/20 flex items-center gap-1.5"
+                  >
+                    <Trash2 size={13} />
+                    <span>Remove Photo</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Basic Personal Info */}
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-outline-variant/30 space-y-4">
+            <h3 className="text-base font-bold text-on-surface mb-2 flex items-center gap-2">
+              <User size={18} className="text-primary" />
+              Personal Details
+            </h3>
+
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5">
-                  Display Username
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Enoch Essel"
+                  className="input-premium px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5">
+                  Display Username *
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. newlordz"
                   className="input-premium px-4 py-2.5 text-sm"
                   required
                 />
               </div>
+            </div>
 
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5">
-                  About You / Bio
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                  <Phone size={12} className="text-primary" /> Phone Number
                 </label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell other developers about your programming interests..."
-                  rows={4}
-                  className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3.5 text-sm text-on-surface focus:outline-none focus:border-primary leading-relaxed"
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +233 24 123 4567"
+                  className="input-premium px-4 py-2.5 text-sm"
                 />
               </div>
 
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  disabled={savingProfile}
-                  className="btn-primary px-6 py-2.5 text-xs rounded-xl flex items-center gap-1.5 shadow-sm"
-                >
-                  <Save size={14} />
-                  <span>{savingProfile ? 'Saving...' : 'Save Profile Changes'}</span>
-                </button>
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                  <MapPin size={12} className="text-rose-500" /> Location / City
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. Accra, Ghana"
+                  className="input-premium px-4 py-2.5 text-sm"
+                />
               </div>
-            </form>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                <Briefcase size={12} className="text-violet-500" /> Professional Headline / Tagline
+              </label>
+              <input
+                type="text"
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder="e.g. Full-Stack Developer & Python Enthusiast"
+                className="input-premium px-4 py-2.5 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5">
+                Bio / About You
+              </label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell other students and mentors about your background, coding journey, and goals..."
+                rows={4}
+                className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3.5 text-sm text-on-surface focus:outline-none focus:border-primary leading-relaxed"
+              />
+            </div>
           </div>
-        </div>
+
+          {/* Social & Portfolio Links */}
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-outline-variant/30 space-y-4">
+            <h3 className="text-base font-bold text-on-surface mb-2 flex items-center gap-2">
+              <Globe size={18} className="text-primary" />
+              Social & Portfolio Links
+            </h3>
+
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                  <Github size={12} /> GitHub Profile
+                </label>
+                <input
+                  type="text"
+                  value={githubUrl}
+                  onChange={(e) => setGithubUrl(e.target.value)}
+                  placeholder="github.com/newlordz"
+                  className="input-premium px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                  <Linkedin size={12} className="text-blue-500" /> LinkedIn Profile
+                </label>
+                <input
+                  type="text"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="linkedin.com/in/username"
+                  className="input-premium px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1">
+                  <Globe size={12} className="text-emerald-500" /> Website / Portfolio
+                </label>
+                <input
+                  type="text"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://yourportfolio.dev"
+                  className="input-premium px-4 py-2.5 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('profile')}
+              className="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-semibold hover:bg-surface-container transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={savingProfile}
+              className="btn-primary px-7 py-2.5 text-xs rounded-xl flex items-center gap-2 shadow-sm"
+            >
+              <Save size={14} />
+              <span>{savingProfile ? 'Saving...' : 'Save Profile Changes'}</span>
+            </button>
+          </div>
+        </form>
       )}
 
-      {/* TAB 2: ACCOUNT & SECURITY */}
-      {activeTab === 'settings' && (
+      {/* TAB 3: SECURITY & PASSWORD */}
+      {activeTab === 'security' && (
         <div className="space-y-6">
           {/* Email Info */}
-          <div className="glass-panel p-6 rounded-2xl">
-            <h3 className="text-base font-bold text-on-surface mb-2">Account Details</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-mono uppercase text-on-surface-variant mb-1">
-                  Registered Email Address
-                </label>
-                <div className="flex items-center gap-2 max-w-md">
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="input-premium px-3.5 py-2 text-sm opacity-70 cursor-not-allowed bg-surface-container"
-                  />
-                  <span className="text-xs font-mono text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">
-                    Verified
-                  </span>
-                </div>
+          <div className="glass-panel p-6 rounded-2xl border border-outline-variant/30">
+            <h3 className="text-base font-bold text-on-surface mb-2">Account Email</h3>
+            <div>
+              <label className="block text-xs font-mono uppercase text-on-surface-variant mb-1">
+                Registered Email
+              </label>
+              <div className="flex items-center gap-2 max-w-md">
+                <input
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="input-premium px-3.5 py-2 text-sm opacity-70 cursor-not-allowed bg-surface-container"
+                />
+                <span className="text-xs font-mono text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full font-semibold border border-emerald-500/20">
+                  Verified
+                </span>
               </div>
             </div>
           </div>
 
           {/* Change Password Form */}
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-outline-variant/30">
             <h3 className="text-lg font-bold text-on-surface mb-1 flex items-center gap-2">
               <Key size={18} className="text-primary" />
               Change Password
@@ -364,10 +725,10 @@ export default function Profile() {
         </div>
       )}
 
-      {/* TAB 3: PREFERENCES */}
+      {/* TAB 4: PREFERENCES */}
       {activeTab === 'preferences' && (
         <div className="space-y-6">
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl border border-outline-variant/30">
             <h3 className="text-lg font-bold text-on-surface mb-2">Display & Theme</h3>
             <p className="text-xs text-on-surface-variant mb-6">
               Customize the look and feel of your CodeFlow workspace.
