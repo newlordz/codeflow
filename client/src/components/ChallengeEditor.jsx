@@ -11,6 +11,7 @@ import {
   Check,
   Award,
   AlertCircle,
+  Bot,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { runCode, runChallengeTests } from '../utils/challengeRunner';
@@ -23,6 +24,8 @@ export default function ChallengeEditor({
   hint = '',
   onPassAll = () => {},
   isCompleted = false,
+  onCodeChange = () => {},
+  onOpenAi = null,
 }) {
   const [code, setCode] = useState(initialCode || starterCode || getDefaultBoilerplate(language));
   const [activeTab, setActiveTab] = useState('tests'); // 'tests' | 'console'
@@ -39,6 +42,10 @@ export default function ChallengeEditor({
       setCode(starterCode);
     }
   }, [starterCode]);
+
+  useEffect(() => {
+    onCodeChange(code);
+  }, [code]);
 
   // Handle Tab key in code editor
   const handleKeyDown = (e) => {
@@ -130,6 +137,16 @@ export default function ChallengeEditor({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {onOpenAi && (
+            <button
+              onClick={onOpenAi}
+              className="px-2.5 py-1 rounded-md text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 transition-colors flex items-center gap-1 font-medium"
+              title="Ask FlowAI Mentor"
+            >
+              <Bot size={13} className="text-primary" />
+              <span>Ask FlowAI</span>
+            </button>
+          )}
           {hint && (
             <button
               onClick={() => setShowHint(!showHint)}

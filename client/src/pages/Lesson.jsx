@@ -17,6 +17,7 @@ import {
   FileText,
   Award,
   Zap,
+  Bot,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -24,6 +25,7 @@ import { useApi } from '../hooks/useApi';
 import GlassPanel from '../components/GlassPanel';
 import ProgressBar from '../components/ProgressBar';
 import ChallengeEditor from '../components/ChallengeEditor';
+import FlowAIMentor from '../components/FlowAIMentor';
 
 export default function Lesson() {
   const { id } = useParams();
@@ -37,6 +39,8 @@ export default function Lesson() {
   const [savingNote, setSavingNote] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [layoutMode, setLayoutMode] = useState('split'); // 'split' | 'reading' | 'code'
+  const [showAiMentor, setShowAiMentor] = useState(false);
+  const [currentCode, setCurrentCode] = useState('');
 
   useEffect(() => {
     async function fetchLesson() {
@@ -186,8 +190,17 @@ export default function Lesson() {
           </button>
         </div>
 
-        {/* Right: Prev/Next Lesson Buttons */}
+        {/* Right: FlowAI Button & Prev/Next Lesson Buttons */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAiMentor(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600/15 via-indigo-600/15 to-purple-600/15 hover:from-blue-600/25 hover:to-purple-600/25 text-sky-400 border border-blue-500/30 font-semibold text-xs shadow-xs transition-all"
+            title="Open FlowAI Code Mentor"
+          >
+            <Sparkles size={13} className="text-amber-400 animate-pulse" />
+            <span>Ask FlowAI</span>
+          </button>
+
           {lesson.prev_lesson && (
             <button
               onClick={() => navigate(`/lessons/${lesson.prev_lesson.id}`)}
@@ -233,6 +246,8 @@ export default function Lesson() {
               hint={lesson.hint || 'Carefully check the lesson instructions and variable names.'}
               onPassAll={handleChallengePassed}
               isCompleted={Boolean(lesson.completed)}
+              onCodeChange={(c) => setCurrentCode(c)}
+              onOpenAi={() => setShowAiMentor(true)}
             />
           </div>
         </div>
@@ -444,10 +459,21 @@ export default function Lesson() {
               hint={lesson.hint || 'Refer to the examples in the left pane to structure your variables and logic.'}
               onPassAll={handleChallengePassed}
               isCompleted={Boolean(lesson.completed)}
+              onCodeChange={(c) => setCurrentCode(c)}
+              onOpenAi={() => setShowAiMentor(true)}
             />
           </div>
         </div>
       )}
+
+      {/* Slide-over FlowAI Code Mentor Drawer */}
+      <FlowAIMentor
+        isOpen={showAiMentor}
+        onClose={() => setShowAiMentor(false)}
+        currentCode={currentCode || lesson.starter_code || getSmartStarterCode(lesson)}
+        language={lesson.course_language || 'Python'}
+        contextTitle={lesson.title || 'Lesson'}
+      />
     </motion.div>
   );
 }

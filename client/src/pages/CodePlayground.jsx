@@ -13,10 +13,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  Bot,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CodeEditor from '../components/CodeEditor';
 import GlassPanel from '../components/GlassPanel';
+import FlowAIMentor from '../components/FlowAIMentor';
 import { useApi } from '../hooks/useApi';
 
 const languages = [
@@ -181,6 +183,7 @@ export default function CodePlayground() {
   const [isSuccess, setIsSuccess] = useState(true);
   const [activeTab, setActiveTab] = useState('console'); // 'console' | 'preview'
   const [htmlPreviewCode, setHtmlPreviewCode] = useState(templates['html']);
+  const [showAiMentor, setShowAiMentor] = useState(false);
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -301,6 +304,14 @@ export default function CodePlayground() {
             >
               <RotateCcw size={14} />
               <span>Reset</span>
+            </button>
+            <button
+              onClick={() => setShowAiMentor(true)}
+              className="px-3.5 py-2 text-xs rounded-xl bg-gradient-to-r from-blue-600/15 via-indigo-600/15 to-purple-600/15 hover:from-blue-600/25 hover:to-purple-600/25 text-sky-400 border border-blue-500/30 font-semibold flex items-center gap-1.5 shadow-xs transition-all"
+              title="Ask FlowAI Code Mentor"
+            >
+              <Bot size={14} className="text-primary" />
+              <span>Ask FlowAI</span>
             </button>
             <button
               onClick={handleRun}
@@ -425,6 +436,15 @@ export default function CodePlayground() {
           </div>
         </div>
       </div>
+
+      {/* Slide-over FlowAI Code Mentor Drawer */}
+      <FlowAIMentor
+        isOpen={showAiMentor}
+        onClose={() => setShowAiMentor(false)}
+        currentCode={code}
+        language={languages.find((l) => l.value === language)?.label || language}
+        contextTitle="Code Playground"
+      />
     </motion.div>
   );
 }
