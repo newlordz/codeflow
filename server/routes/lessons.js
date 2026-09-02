@@ -4,8 +4,14 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
+    if (!UUID_REGEX.test(req.params.id)) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
     const lesson = await query(`
       SELECT l.*,
         COALESCE(up.completed, false) as completed,

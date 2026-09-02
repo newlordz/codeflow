@@ -23,8 +23,14 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
+    if (!UUID_REGEX.test(req.params.id)) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
     const course = await query('SELECT * FROM courses WHERE id = $1', [req.params.id]);
     if (course.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found' });

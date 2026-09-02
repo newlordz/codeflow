@@ -358,21 +358,39 @@ export default function CourseDetail() {
           <Brain size={18} className="text-tertiary" />
           Related Quizzes
         </h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          {relatedQuizzes.map((quiz) => (
-            <div key={quiz.id} className="glass-card p-5 flex items-center justify-between cursor-pointer" onClick={() => navigate(`/quizzes/${quiz.id}`)}>
-              <div>
-                <h4 className="text-sm font-semibold text-on-surface">{quiz.title}</h4>
-                <p className="text-xs text-on-surface-variant font-mono mt-0.5">
-                  {quiz.questions} questions &middot; {quiz.difficulty}
-                </p>
+        {course?.quizzes && course.quizzes.length > 0 ? (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {course.quizzes.map((quiz) => (
+              <div key={quiz.id} className="glass-card p-5 flex items-center justify-between cursor-pointer hover:border-primary/40 transition-colors" onClick={() => navigate(`/quizzes/${quiz.id}`)}>
+                <div>
+                  <h4 className="text-sm font-semibold text-on-surface">{quiz.title}</h4>
+                  <p className="text-xs text-on-surface-variant font-mono mt-0.5">
+                    {Array.isArray(quiz.questions) ? quiz.questions.length : 10} questions &middot; {quiz.passing_score || 70}% passing score
+                  </p>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 shadow-md shadow-violet-500/25 flex items-center justify-center flex-shrink-0">
+                  <ChevronRight size={16} className="text-white" />
+                </div>
               </div>
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-purple-600 shadow-md shadow-violet-500/25 flex items-center justify-center flex-shrink-0">
-                <ChevronRight size={16} className="text-white" />
-              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-semibold text-on-surface">Interactive Knowledge Quizzes</h4>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                Challenge yourself and earn certificates across Python, JavaScript, SQL, and more.
+              </p>
             </div>
-          ))}
-        </div>
+            <button
+              onClick={() => navigate('/quizzes')}
+              className="btn-primary px-5 py-2 text-xs rounded-xl flex items-center gap-1.5 whitespace-nowrap shadow-xs"
+            >
+              <span>Explore Quizzes</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

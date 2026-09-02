@@ -14,26 +14,48 @@ export function AuthProvider({ children }) {
     const storedUser = localStorage.getItem('codeflow-user');
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsed = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser(parsed);
+      } catch {
+        localStorage.removeItem('codeflow-token');
+        localStorage.removeItem('codeflow-user');
+        setLoading(false);
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        setLoading(false);
+      }, 4000);
+
       fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${storedToken}` },
+        signal: controller.signal,
       })
         .then((res) => {
           if (!res.ok) throw new Error('Invalid token');
           return res.json();
         })
         .then((data) => {
-          setUser(data.user || data);
-          localStorage.setItem('codeflow-user', JSON.stringify(data.user || data));
+          const authUser = data.user || data;
+          setUser(authUser);
+          localStorage.setItem('codeflow-user', JSON.stringify(authUser));
         })
-        .catch(() => {
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('codeflow-token');
-          localStorage.removeItem('codeflow-user');
+        .catch((err) => {
+          if (err.name !== 'AbortError') {
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem('codeflow-token');
+            localStorage.removeItem('codeflow-user');
+          }
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }
@@ -83,7 +105,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!token && !!user;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, setUser, token, setToken, loading, login, signup, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

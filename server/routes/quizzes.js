@@ -23,8 +23,14 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
+    if (!UUID_REGEX.test(req.params.id)) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
     const quiz = await query(`
       SELECT q.*, c.title as course_title
       FROM quizzes q
