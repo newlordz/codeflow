@@ -183,6 +183,8 @@ export async function initializeDatabase() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS github_url VARCHAR(255) DEFAULT '';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(255) DEFAULT '';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url VARCHAR(255) DEFAULT '';
+
+      ALTER TABLE lessons ADD COLUMN IF NOT EXISTS xp_reward INTEGER DEFAULT 50;
     `);
 
     const defaultPassword = await bcrypt.hash('password123', 10);
