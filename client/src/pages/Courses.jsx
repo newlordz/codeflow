@@ -150,6 +150,15 @@ export default function Courses() {
     }
   };
 
+  const handleSelectEnrollFilter = (ef) => {
+    setEnrollFilter(ef);
+    if (ef === 'My Enrolled Courses') {
+      setActiveLang('All');
+      setActiveLevel('All');
+      setSearch('');
+    }
+  };
+
   const filtered = courses.filter((c) => {
     const isEnrolled = Boolean(c.enrolled);
     const matchSearch =
@@ -217,67 +226,110 @@ export default function Courses() {
 
       {/* Filter Bar */}
       <div className="space-y-3 bg-surface-container/30 p-4 rounded-2xl border border-outline-variant/30 backdrop-blur-sm">
-        {/* Enrollment Status Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-on-surface-variant font-mono uppercase tracking-wider mr-1">
-            Status:
-          </span>
-          {enrollmentFilters.map((ef) => (
+        {/* Row 1: Enrollment Status Filters */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-on-surface-variant font-mono uppercase tracking-wider mr-1">
+              Status:
+            </span>
+            {enrollmentFilters.map((ef) => {
+              const count = ef === 'My Enrolled Courses'
+                ? enrolledCount
+                : ef === 'Available to Enroll'
+                ? courses.filter((c) => !c.enrolled).length
+                : courses.length;
+              return (
+                <button
+                  key={ef}
+                  onClick={() => handleSelectEnrollFilter(ef)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    enrollFilter === ef
+                      ? 'bg-primary text-white font-semibold shadow-xs'
+                      : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border border-outline-variant/30'
+                  }`}
+                >
+                  {ef} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {(activeLang !== 'All' || activeLevel !== 'All' || search) && (
             <button
-              key={ef}
-              onClick={() => setEnrollFilter(ef)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                enrollFilter === ef
-                  ? 'bg-primary text-white font-semibold shadow-xs'
-                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high border border-outline-variant/30'
+              onClick={() => {
+                setActiveLang('All');
+                setActiveLevel('All');
+                setSearch('');
+              }}
+              className="text-xs text-primary hover:underline font-semibold flex items-center gap-1"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+
+        {/* Row 2: Languages */}
+        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-outline-variant/20 text-xs">
+          <span className="text-on-surface-variant font-mono uppercase tracking-wider font-semibold min-w-[70px]">
+            Language:
+          </span>
+          {languages.map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setActiveLang(lang)}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                activeLang === lang
+                  ? 'bg-primary/15 text-primary font-bold border border-primary/30'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
               }`}
             >
-              {ef} {ef === 'My Enrolled Courses' && `(${enrolledCount})`}
+              {lang}
             </button>
           ))}
         </div>
 
-        {/* Languages and Levels */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-outline-variant/20 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-on-surface-variant font-mono uppercase tracking-wider font-semibold">
-              Language:
-            </span>
-            {languages.map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setActiveLang(lang)}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  activeLang === lang
-                    ? 'bg-primary/15 text-primary font-bold border border-primary/30'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-                }`}
-              >
-                {lang}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-on-surface-variant font-mono uppercase tracking-wider font-semibold">
-              Level:
-            </span>
-            {levels.map((level) => (
-              <button
-                key={level}
-                onClick={() => setActiveLevel(level)}
-                className={`px-3 py-1 rounded-lg transition-all ${
-                  activeLevel === level
-                    ? 'bg-primary/15 text-primary font-bold border border-primary/30'
-                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-                }`}
-              >
-                {level}
-              </button>
-            ))}
-          </div>
+        {/* Row 3: Levels */}
+        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-outline-variant/20 text-xs">
+          <span className="text-on-surface-variant font-mono uppercase tracking-wider font-semibold min-w-[70px]">
+            Level:
+          </span>
+          {levels.map((level) => (
+            <button
+              key={level}
+              onClick={() => setActiveLevel(level)}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                activeLevel === level
+                  ? 'bg-primary/15 text-primary font-bold border border-primary/30'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+              }`}
+            >
+              {level}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Filter Info Banner when some enrolled courses are hidden */}
+      {enrollFilter === 'My Enrolled Courses' && filtered.length < enrolledCount && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs text-on-surface">
+          <span>
+            Showing <strong>{filtered.length}</strong> of your <strong>{enrolledCount}</strong> enrolled courses{' '}
+            <span className="text-on-surface-variant">
+              (filtered by {activeLevel !== 'All' ? `Level: ${activeLevel}` : ''} {activeLang !== 'All' ? `Language: ${activeLang}` : ''} {search ? `Search: "${search}"` : ''})
+            </span>
+          </span>
+          <button
+            onClick={() => {
+              setActiveLang('All');
+              setActiveLevel('All');
+              setSearch('');
+            }}
+            className="text-primary font-bold hover:underline"
+          >
+            Show All ({enrolledCount})
+          </button>
+        </div>
+      )}
 
       {/* Courses Grid */}
       {filtered.length === 0 ? (
