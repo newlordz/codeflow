@@ -1,10 +1,16 @@
 import pg from 'pg';
 
-const { Pool } = pg;
+const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.RAILWAY_ENVIRONMENT);
 
-const pool = new Pool({
+const poolConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://postgres:botsio212nyc@localhost:5432/codeflow',
-});
+};
+
+if (process.env.DATABASE_URL && (isProduction || process.env.DATABASE_URL.includes('railway') || process.env.DATABASE_URL.includes('rlwy.net'))) {
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
+
+const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
