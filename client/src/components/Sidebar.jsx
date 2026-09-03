@@ -13,6 +13,7 @@ import {
   X,
   Shield,
   Plus,
+  Trophy,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../hooks/useApi';
@@ -22,6 +23,7 @@ const baseNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/courses', label: 'Courses', icon: BookOpen },
   { to: '/playground', label: 'Code Playground', icon: Code2 },
+  { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { to: '/quizzes', label: 'Quizzes', icon: Brain },
   { to: '/certificates', label: 'Certificates', icon: Award },
   { to: '/notes', label: 'Notes', icon: StickyNote },

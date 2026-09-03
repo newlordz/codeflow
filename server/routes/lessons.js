@@ -141,12 +141,36 @@ router.post('/:id/complete', authMiddleware, async (req, res) => {
       'Small steps every day lead to giant leaps. You are doing amazing!',
     ];
 
+    // Calculate Streak XP Multiplier
+    const userStreak = await getCurrentStreak(req.user.id);
+    let multiplier = 1.0;
+    if (userStreak >= 30) multiplier = 2.0;
+    else if (userStreak >= 14) multiplier = 1.5;
+    else if (userStreak >= 7) multiplier = 1.25;
+    else if (userStreak >= 3) multiplier = 1.1;
+
+    const baseXP = lesson.rows[0].xp_reward || 50;
+    const earnedXP = Math.round(baseXP * multiplier);
+
+    await query('UPDATE users SET xp = COALESCE(xp, 0) + $1 WHERE id = $2', [earnedXP, req.user.id]);
+
     await query(
       `INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, 'motivation', $4)`,
-      [req.user.id, 'Lesson Completed!', motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)], `/lessons/${req.params.id}`]
+      [
+        req.user.id,
+        'Lesson Completed!',
+        `${motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)]} (+${earnedXP} XP ${multiplier > 1 ? `with ${multiplier}x Streak Boost!` : ''})`,
+        `/lessons/${req.params.id}`
+      ]
     );
 
-    res.json({ message: 'Lesson completed', progress, streak: await getCurrentStreak(req.user.id) });
+    res.json({
+      message: 'Lesson completed',
+      progress,
+      streak: userStreak,
+      earnedXP,
+      multiplier
+    });
   } catch (err) {
     console.error('Complete lesson error:', err);
     res.status(500).json({ error: 'Server error' });

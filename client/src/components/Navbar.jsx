@@ -99,9 +99,10 @@ export default function Navbar({ onMenuToggle }) {
         <div className="hidden md:flex items-center gap-1 bg-surface-container/70 border border-outline-variant/40 rounded-full p-1 shadow-inner">
           {[
             { to: '/courses', label: 'Courses' },
+            { to: '/playground', label: 'Playground' },
+            { to: '/leaderboard', label: 'Leaderboard' },
             { to: '/quizzes', label: 'Quizzes' },
             { to: '/notes', label: 'Notes' },
-            { to: '/playground', label: 'Playground' },
           ].map((link) => {
             const active = window.location.pathname.startsWith(link.to);
             return (

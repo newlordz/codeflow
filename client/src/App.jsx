@@ -20,6 +20,7 @@ import QAPage from './pages/QAPage';
 import Landing from './pages/Landing';
 import Admin from './pages/Admin';
 import Profile from './pages/Profile';
+import Leaderboard from './pages/Leaderboard';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children }) {
@@ -230,6 +231,16 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <Profile />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Leaderboard />
                 </Layout>
               </ProtectedRoute>
             }

@@ -14,6 +14,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import adminRoutes from './routes/admin.js';
 import runnerRoutes from './routes/runner.js';
 import aiRoutes from './routes/ai.js';
+import leaderboardRoutes from './routes/leaderboard.js';
 import { authMiddleware } from './middleware/auth.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,6 +42,7 @@ app.use('/api/notifications', authMiddleware, notificationsRoutes);
 app.use('/api/qa', authMiddleware, qaRoutes);
 app.use('/api/streaks', authMiddleware, streaksRoutes);
 app.use('/api/certificates', authMiddleware, certificatesRoutes);
+app.use('/api/leaderboard', authMiddleware, leaderboardRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
