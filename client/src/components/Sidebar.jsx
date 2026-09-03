@@ -14,6 +14,7 @@ import {
   Shield,
   Plus,
   Trophy,
+  Swords,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../hooks/useApi';
@@ -22,8 +23,9 @@ import ProgressBar from './ProgressBar';
 const baseNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/courses', label: 'Courses', icon: BookOpen },
-  { to: '/playground', label: 'Code Playground', icon: Code2 },
+  { to: '/battles', label: 'Code Battles', icon: Swords },
   { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { to: '/playground', label: 'Code Playground', icon: Code2 },
   { to: '/quizzes', label: 'Quizzes', icon: Brain },
   { to: '/certificates', label: 'Certificates', icon: Award },
   { to: '/notes', label: 'Notes', icon: StickyNote },

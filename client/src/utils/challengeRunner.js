@@ -171,3 +171,44 @@ function generateDefaultTests(code, lang) {
     { id: 2, name: 'Code runs without uncaught exceptions', assertion: 'return true;', expected: 'Zero runtime errors' },
   ];
 }
+
+export function runJavaScriptTests(code, testCases = []) {
+  const results = [];
+  let passedCount = 0;
+
+  for (let i = 0; i < testCases.length; i++) {
+    const tc = testCases[i];
+    try {
+      const runner = new Function(`
+        "use strict";
+        ${code}
+        return (${tc.input});
+      `);
+      const actualRaw = runner();
+      const actual = typeof actualRaw === 'object' ? JSON.stringify(actualRaw) : String(actualRaw);
+      const expected = String(tc.expected).trim();
+      const passed = actual.replace(/\\s+/g, '') === expected.replace(/\\s+/g, '');
+      if (passed) passedCount++;
+      results.push({
+        input: tc.input,
+        expected,
+        actual,
+        passed,
+      });
+    } catch (err) {
+      results.push({
+        input: tc.input,
+        expected: String(tc.expected),
+        actual: `Error: ${err.message}`,
+        passed: false,
+      });
+    }
+  }
+
+  return {
+    passed: passedCount === testCases.length && testCases.length > 0,
+    passedCount,
+    totalCount: testCases.length,
+    results,
+  };
+}

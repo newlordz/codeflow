@@ -99,8 +99,9 @@ export default function Navbar({ onMenuToggle }) {
         <div className="hidden md:flex items-center gap-1 bg-surface-container/70 border border-outline-variant/40 rounded-full p-1 shadow-inner">
           {[
             { to: '/courses', label: 'Courses' },
-            { to: '/playground', label: 'Playground' },
+            { to: '/battles', label: 'Battles' },
             { to: '/leaderboard', label: 'Leaderboard' },
+            { to: '/playground', label: 'Playground' },
             { to: '/quizzes', label: 'Quizzes' },
             { to: '/notes', label: 'Notes' },
           ].map((link) => {

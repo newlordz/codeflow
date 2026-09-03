@@ -21,6 +21,7 @@ import Landing from './pages/Landing';
 import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
+import CodeBattles from './pages/CodeBattles';
 import VerifyCertificate from './pages/VerifyCertificate';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -246,6 +247,16 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <Leaderboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/battles"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CodeBattles />
                 </Layout>
               </ProtectedRoute>
             }
