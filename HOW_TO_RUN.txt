@@ -1,0 +1,45 @@
+====================================================================
+           CODEFLOW ACADEMY - QUICK START GUIDE FOR CLIENTS
+====================================================================
+
+HOW TO RUN THE PROJECT:
+-----------------------
+1. Simply double-click "start.bat".
+
+That's it! 
+- It will automatically verify Node.js and npm.
+- If dependencies are missing, it will automatically install them.
+- It will start the backend server on port 3001.
+- It will start the frontend server on port 5173.
+- It will automatically open http://localhost:5173 in your default browser.
+
+
+HOW TO STOP THE PROJECT:
+------------------------
+- Option 1: In the launcher window, press 3 to stop all servers.
+- Option 2: Double-click "stop.bat" at any time to terminate all running servers.
+- Option 3: Simply close the Backend and Frontend command windows.
+
+
+LOGIN ACCOUNTS (PRE-CONFIGURED):
+--------------------------------
+1. Student Account:
+   - Email:    demo@codeflow.com
+   - Password: password123
+
+2. Admin Account:
+   - Email:    admin@codeflow.com
+   - Password: password123
+
+
+PREREQUISITES:
+--------------
+1. Node.js (v18 or higher):
+   If you don't have Node.js installed, download the LTS version from:
+   https://nodejs.org/
+
+2. PostgreSQL Database:
+   The backend connects to PostgreSQL at localhost:5432 with database "codeflow".
+   Make sure your PostgreSQL service is running.
+   If needed, database credentials can be adjusted in "server\.env".
+====================================================================

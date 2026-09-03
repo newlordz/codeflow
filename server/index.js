@@ -1,3 +1,41 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Auto-load environment variables from .env
+try {
+  const envCandidates = [
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '../.env'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'server/.env'),
+  ];
+  for (const envFile of envCandidates) {
+    if (fs.existsSync(envFile)) {
+      if (typeof process.loadEnvFile === 'function') {
+        process.loadEnvFile(envFile);
+      } else {
+        const lines = fs.readFileSync(envFile, 'utf8').split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+            const idx = trimmed.indexOf('=');
+            const key = trimmed.slice(0, idx).trim();
+            const val = trimmed.slice(idx + 1).trim();
+            if (!process.env[key]) process.env[key] = val;
+          }
+        }
+      }
+      break;
+    }
+  }
+} catch {
+  // Continue even if .env reading fails
+}
+
 import express from 'express';
 import cors from 'cors';
 import { initializeDatabase } from './db.js';
@@ -17,11 +55,6 @@ import aiRoutes from './routes/ai.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import battleRoutes from './routes/battles.js';
 import { authMiddleware } from './middleware/auth.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const clientDist = path.join(__dirname, '../client/dist');
 
 const app = express();

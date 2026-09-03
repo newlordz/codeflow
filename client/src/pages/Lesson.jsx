@@ -473,6 +473,7 @@ export default function Lesson() {
         currentCode={currentCode || lesson.starter_code || getSmartStarterCode(lesson)}
         language={lesson.course_language || 'Python'}
         contextTitle={lesson.title || 'Lesson'}
+        onApplyCode={(c) => setCurrentCode(c)}
       />
     </motion.div>
   );

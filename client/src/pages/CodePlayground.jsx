@@ -444,6 +444,7 @@ export default function CodePlayground() {
         currentCode={code}
         language={languages.find((l) => l.value === language)?.label || language}
         contextTitle="Code Playground"
+        onApplyCode={(c) => setCode(c)}
       />
     </motion.div>
   );

@@ -10,6 +10,8 @@ import {
   Settings,
   ChevronDown,
   Shield,
+  Bot,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -17,7 +19,7 @@ import { useApi } from '../hooks/useApi';
 import ThemeToggle from './ThemeToggle';
 import StreakBadge from './StreakBadge';
 
-export default function Navbar({ onMenuToggle }) {
+export default function Navbar({ onMenuToggle, onOpenAi }) {
   const { user, logout } = useAuth();
   const { theme } = useTheme();
   const { get } = useApi();
@@ -122,7 +124,20 @@ export default function Navbar({ onMenuToggle }) {
           })}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <button
+            onClick={() => {
+              if (onOpenAi) onOpenAi();
+              window.dispatchEvent(new CustomEvent('open-global-ai-mentor'));
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all text-xs font-semibold shadow-xs cursor-pointer"
+            title="Open FlowAI Coding Mentor"
+          >
+            <Bot size={15} className="text-primary" />
+            <span className="hidden sm:inline">FlowAI</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          </button>
+
           <ThemeToggle />
           <StreakBadge count={user?.streak || 0} size="sm" />
 
