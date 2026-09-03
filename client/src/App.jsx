@@ -21,6 +21,7 @@ import Landing from './pages/Landing';
 import Admin from './pages/Admin';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
+import VerifyCertificate from './pages/VerifyCertificate';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children }) {
@@ -114,6 +115,10 @@ export default function App() {
                 <Signup />
               </PublicRoute>
             }
+          />
+          <Route
+            path="/verify/:id"
+            element={<VerifyCertificate />}
           />
           <Route
             path="/dashboard"

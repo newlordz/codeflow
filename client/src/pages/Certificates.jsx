@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, Download, X, Calendar, Medal, Star, Shield, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Award, Download, X, Calendar, Medal, Star, Shield, Sparkles, Printer, ExternalLink, Copy } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../hooks/useApi';
 import GlassPanel from '../components/GlassPanel';
+import {
+  downloadCertificateSVG,
+  downloadCertificatePNG,
+  printCertificate,
+} from '../utils/certificateGenerator';
 
 const fallbackCerts = [
   { id: 1, course_title: 'Python Mastery', quiz_title: 'Python Fundamentals Quiz', language: 'Python', level: 'Beginner', difficulty: 'easy', score: 85, issued_at: '2024-03-15T10:30:00Z' },
@@ -10,6 +18,7 @@ const fallbackCerts = [
 ];
 
 export default function Certificates() {
+  const { user } = useAuth();
   const { get } = useApi();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -188,13 +197,55 @@ export default function Certificates() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => toast.success('Certificate downloaded!')}
-                  className="btn-primary mt-5 w-full py-2.5 text-sm shadow-xs"
-                >
-                  <Download size={16} />
-                  Download Certificate
-                </button>
+                <div className="mt-5 space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const sName = selectedCert.user_name || user?.full_name || user?.username || 'CodeFlow Scholar';
+                        downloadCertificateSVG(selectedCert, sName);
+                        toast.success('Vector SVG Certificate downloaded!');
+                      }}
+                      className="btn-primary py-2.5 text-xs shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Download size={14} />
+                      Download SVG
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const sName = selectedCert.user_name || user?.full_name || user?.username || 'CodeFlow Scholar';
+                        downloadCertificatePNG(selectedCert, sName);
+                        toast.success('Generating High-Res PNG Certificate...');
+                      }}
+                      className="glass-panel hover:bg-surface-container-high text-on-surface py-2.5 text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Download size={14} />
+                      Download PNG
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const sName = selectedCert.user_name || user?.full_name || user?.username || 'CodeFlow Scholar';
+                        printCertificate(selectedCert, sName);
+                      }}
+                      className="glass-panel hover:bg-surface-container-high text-on-surface py-2 text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Printer size={13} />
+                      Print / Save PDF
+                    </button>
+
+                    <Link
+                      to={`/verify/${selectedCert.id || 'demo'}`}
+                      target="_blank"
+                      className="glass-panel hover:bg-surface-container-high text-primary py-2 text-xs flex items-center justify-center gap-1.5 transition-colors font-semibold"
+                    >
+                      <ExternalLink size={13} />
+                      Public Ledger
+                    </Link>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>

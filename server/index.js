@@ -41,7 +41,7 @@ app.use('/api/notes', authMiddleware, notesRoutes);
 app.use('/api/notifications', authMiddleware, notificationsRoutes);
 app.use('/api/qa', authMiddleware, qaRoutes);
 app.use('/api/streaks', authMiddleware, streaksRoutes);
-app.use('/api/certificates', authMiddleware, certificatesRoutes);
+app.use('/api/certificates', certificatesRoutes);
 app.use('/api/leaderboard', authMiddleware, leaderboardRoutes);
 
 app.get('/api/health', (req, res) => {
