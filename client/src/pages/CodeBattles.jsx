@@ -24,13 +24,87 @@ import { useAuth } from '../contexts/AuthContext';
 import GlassPanel from '../components/GlassPanel';
 import { runJavaScriptTests } from '../utils/challengeRunner';
 
+const DEFAULT_CHALLENGES = [
+  {
+    id: 'battle-reverse-words',
+    title: 'Reverse Words in String',
+    difficulty: 'easy',
+    time_limit: 180,
+    language: 'javascript',
+    description: 'Given an input string s, reverse the order of the words. A word is defined as a sequence of non-space characters. The returned string should only have a single space separating the words.',
+    starter_code: 'function reverseWords(s) {\n  // Your code here\n  return s.trim().split(/\\s+/).reverse().join(" ");\n}',
+    test_cases: [
+      { input: 'reverseWords("the sky is blue")', expected: 'blue is sky the' },
+      { input: 'reverseWords("  hello world  ")', expected: 'world hello' },
+      { input: 'reverseWords("a good   example")', expected: 'example good a' }
+    ]
+  },
+  {
+    id: 'battle-two-sum',
+    title: 'Two Sum Target',
+    difficulty: 'medium',
+    time_limit: 240,
+    language: 'javascript',
+    description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume each input has exactly one solution.',
+    starter_code: 'function twoSum(nums, target) {\n  // Your code here\n  \n}',
+    test_cases: [
+      { input: 'twoSum([2,7,11,15], 9)', expected: '[0,1]' },
+      { input: 'twoSum([3,2,4], 6)', expected: '[1,2]' },
+      { input: 'twoSum([3,3], 6)', expected: '[0,1]' }
+    ]
+  },
+  {
+    id: 'battle-valid-parentheses',
+    title: 'Valid Parentheses',
+    difficulty: 'easy',
+    time_limit: 180,
+    language: 'javascript',
+    description: 'Given a string s containing just the characters "(", ")", "{", "}", "[" and "]", determine if the input string is valid. Open brackets must be closed by the same type of brackets in the correct order.',
+    starter_code: 'function isValid(s) {\n  // Your code here\n  \n}',
+    test_cases: [
+      { input: 'isValid("()")', expected: 'true' },
+      { input: 'isValid("()[]{}")', expected: 'true' },
+      { input: 'isValid("(]")', expected: 'false' },
+      { input: 'isValid("([)]")', expected: 'false' }
+    ]
+  },
+  {
+    id: 'battle-fizzbuzz-multiplier',
+    title: 'FizzBuzz Multiplier Array',
+    difficulty: 'easy',
+    time_limit: 150,
+    language: 'javascript',
+    description: 'Write a function that returns an array of string representations of numbers from 1 to n. For multiples of 3 return "Fizz", multiples of 5 return "Buzz", and multiples of both 3 and 5 return "FizzBuzz".',
+    starter_code: 'function fizzBuzz(n) {\n  // Your code here\n  \n}',
+    test_cases: [
+      { input: 'fizzBuzz(3)', expected: '["1","2","Fizz"]' },
+      { input: 'fizzBuzz(5)', expected: '["1","2","Fizz","4","Buzz"]' },
+      { input: 'fizzBuzz(15)', expected: '["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]' }
+    ]
+  },
+  {
+    id: 'battle-palindrome-checker',
+    title: 'Alphanumeric Palindrome',
+    difficulty: 'easy',
+    time_limit: 150,
+    language: 'javascript',
+    description: 'A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.',
+    starter_code: 'function isPalindrome(s) {\n  // Your code here\n  \n}',
+    test_cases: [
+      { input: 'isPalindrome("A man, a plan, a canal: Panama")', expected: 'true' },
+      { input: 'isPalindrome("race a car")', expected: 'false' },
+      { input: 'isPalindrome(" ")', expected: 'true' }
+    ]
+  }
+];
+
 export default function CodeBattles() {
   const { get, post } = useApi();
   const { user } = useAuth();
 
-  const [challenges, setChallenges] = useState([]);
+  const [challenges, setChallenges] = useState(DEFAULT_CHALLENGES);
   const [stats, setStats] = useState({ battlesWon: 12, totalBattles: 14, battleXp: 1250, winRate: 86 });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Active Battle State
   const [inBattle, setInBattle] = useState(false);
@@ -51,14 +125,12 @@ export default function CodeBattles() {
     async function fetchBattleData() {
       try {
         const data = await get('/battles/challenges');
-        if (data?.challenges) {
+        if (data?.challenges && data.challenges.length > 0) {
           setChallenges(data.challenges);
           if (data.stats) setStats(data.stats);
         }
       } catch (err) {
-        console.error('Failed to load battle data:', err);
-      } finally {
-        setLoading(false);
+        console.warn('Using default challenges for battle arena:', err?.message);
       }
     }
     fetchBattleData();
@@ -109,6 +181,7 @@ export default function CodeBattles() {
     setTestResults([]);
     setBattleResult(null);
     setInBattle(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBattleEnd = async (result) => {
@@ -169,19 +242,6 @@ export default function CodeBattles() {
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-10 w-48 glass-panel shimmer rounded-lg" />
-        <div className="grid md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="glass-panel rounded-2xl p-6 shimmer h-44" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   // ==========================================
   // VIEW 1: ACTIVE BATTLE ARENA
@@ -527,16 +587,15 @@ export default function CodeBattles() {
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-on-surface flex items-center gap-2">
           <Swords size={18} className="text-primary" />
-          <span>Active Arena Challenges</span>
+          <span>Active Arena Challenges ({challenges.length})</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {challenges.map((c) => (
-            <GlassPanel
+            <div
               key={c.id}
-              className="p-5 flex flex-col justify-between hover:border-primary/40 transition-all group cursor-pointer"
-              hover
               onClick={() => startBattle(c)}
+              className="glass-panel rounded-2xl p-5 flex flex-col justify-between hover:border-primary/50 transition-all group cursor-pointer hover:shadow-lg shadow-sm"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -566,12 +625,19 @@ export default function CodeBattles() {
                 <span className="text-[11px] font-mono text-primary font-semibold">
                   +100 XP Bounty
                 </span>
-                <div className="flex items-center gap-1 text-xs font-semibold text-primary group-hover:translate-x-1 transition-transform">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startBattle(c);
+                  }}
+                  className="btn-primary px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs group-hover:shadow-md transition-all"
+                >
                   <span>Enter Duel</span>
-                  <ArrowRight size={14} />
-                </div>
+                  <ArrowRight size={13} />
+                </button>
               </div>
-            </GlassPanel>
+            </div>
           ))}
         </div>
       </div>
