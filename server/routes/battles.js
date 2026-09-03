@@ -125,11 +125,12 @@ router.post('/submit', authMiddleware, async (req, res) => {
     // Notify user
     if (won) {
       await query(
-        `INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, 'achievement', '/battles')`,
+        `INSERT INTO notifications (user_id, title, message, type, link) VALUES ($1, $2, $3, $4, $5)`,
         [
           req.user.id,
           '⚔️ Battle Victory!',
           `You conquered FlowBot in "${challenge?.title || 'Speed Duel'}" (+${xpReward} Battle XP)!`,
+          'achievement',
           '/battles'
         ]
       );

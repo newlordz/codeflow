@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 const router = Router();
 
-router.post('/chat', async (req, res) => {
+router.post(['/chat', '/mentor'], async (req, res) => {
   try {
     const { prompt = '', code = '', language = 'python', context = '', action = 'chat' } = req.body;
     const lang = (language || '').toLowerCase();
