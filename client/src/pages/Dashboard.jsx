@@ -21,6 +21,9 @@ import {
   GitBranch,
   Database,
   Code2,
+  Target,
+  Compass,
+  CheckCircle2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -149,6 +152,9 @@ export default function Dashboard() {
   const enrolledCourses = dashboardData?.enrolledCourses || [];
   const coursesInProgress = enrolledCourses.length;
   const lessonsCompleted = dashboardData?.lessonsCompleted || 0;
+  const totalEnrolledLessons = dashboardData?.totalEnrolledLessons ?? enrolledCourses.reduce((sum, c) => sum + (c.lessons_count || 0), 0);
+  const overallProgress = dashboardData?.overallProgress ?? (totalEnrolledLessons > 0 ? Math.round((lessonsCompleted / totalEnrolledLessons) * 100) : 0);
+  const nextLesson = dashboardData?.nextLesson || null;
   const certificatesEarned = dashboardData?.certificatesEarned || 0;
   const quizAverage = dashboardData?.quizAverage || 0;
   const currentStreak = user?.streak ?? dashboardData?.currentStreak ?? 0;
@@ -216,18 +222,18 @@ export default function Dashboard() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="space-y-8 pb-12"
+      className="space-y-7 pb-12 w-full min-w-0"
     >
       {/* Welcome Banner */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-on-surface-variant font-mono uppercase tracking-wider mb-1">
             {formattedDate}
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold display-tight text-on-surface">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold display-tight text-on-surface truncate">
             {getGreeting()}, <span className="text-primary">{user?.username || 'Developer'}</span>
           </h1>
-          <p className="text-on-surface-variant text-sm mt-1">
+          <p className="text-on-surface-variant text-xs sm:text-sm mt-1">
             {enrolledCourses.length > 0
               ? 'Ready to continue where you left off?'
               : 'Welcome to CodeFlow! Select your first course to begin learning.'}
@@ -237,7 +243,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -245,21 +251,152 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
           >
-            <GlassPanel className="p-5 relative overflow-hidden rounded-2xl" hover>
+            <GlassPanel className="p-4 sm:p-5 relative overflow-hidden rounded-2xl" hover>
               <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white shadow-md ${stat.shadow}`}>
-                  <stat.icon size={19} />
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white shadow-md ${stat.shadow}`}>
+                  <stat.icon size={18} />
                 </div>
-                <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded-full ${stat.bgGlow} ${stat.color}`}>
+                <span className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full ${stat.bgGlow} ${stat.color}`}>
                   Live
                 </span>
               </div>
-              <p className="text-2xl md:text-3xl font-bold text-on-surface font-mono">{stat.value}</p>
-              <p className="text-xs text-on-surface-variant mt-1 font-mono">{stat.label}</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-on-surface font-mono">{stat.value}</p>
+              <p className="text-[11px] sm:text-xs text-on-surface-variant mt-1 font-mono truncate">{stat.label}</p>
             </GlassPanel>
           </motion.div>
         ))}
       </div>
+
+      {/* Learning Progress Hub */}
+      {enrolledCourses.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <GlassPanel className="p-5 sm:p-6 rounded-2xl relative overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/5 via-surface to-surface shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              {/* Left Column: Overall Progress & Milestones */}
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      <TrendingUp size={19} />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-lg font-bold text-on-surface">Learning Progress & Milestones</h2>
+                      <p className="text-xs text-on-surface-variant font-mono">
+                        {lessonsCompleted} of {totalEnrolledLessons} lessons mastered across your enrolled stack
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/25">
+                    {overallProgress}% Overall Mastery
+                  </span>
+                </div>
+
+                {/* Animated Overall Progress Bar */}
+                <div className="space-y-1.5">
+                  <div className="h-3 w-full bg-surface-container-high rounded-full overflow-hidden p-0.5 border border-outline-variant/30">
+                    <motion.div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xs"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.max(overallProgress, enrolledCourses.length > 0 ? 3 : 0)}%` }}
+                      transition={{ duration: 0.8, ease: 'easeOut' }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[11px] text-on-surface-variant font-mono">
+                    <span className={overallProgress >= 0 ? 'text-primary font-semibold' : ''}>Starter (0%)</span>
+                    <span className={`hidden sm:inline ${overallProgress >= 25 ? 'text-primary font-semibold' : ''}`}>Fundamentals (25%)</span>
+                    <span className={overallProgress >= 50 ? 'text-primary font-semibold' : ''}>Core (50%)</span>
+                    <span className={`hidden sm:inline ${overallProgress >= 75 ? 'text-primary font-semibold' : ''}`}>Advanced (75%)</span>
+                    <span className={overallProgress >= 100 ? 'text-emerald-500 font-semibold' : ''}>Certified (100%)</span>
+                  </div>
+                </div>
+
+                {/* Milestones stats row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                  {[
+                    { label: 'Active Courses', value: `${enrolledCourses.length}`, icon: BookOpen, color: 'text-blue-500' },
+                    { label: 'Lessons Mastered', value: `${lessonsCompleted}/${totalEnrolledLessons}`, icon: CheckCircle, color: 'text-emerald-500' },
+                    { label: 'Quiz Score Avg', value: `${quizAverage}%`, icon: Brain, color: 'text-violet-500' },
+                    { label: 'Certificates', value: `${certificatesEarned}`, icon: Award, color: 'text-amber-500' },
+                  ].map((m) => (
+                    <div key={m.label} className="p-2.5 rounded-xl bg-surface-container/60 border border-outline-variant/25 flex items-center gap-2.5">
+                      <m.icon size={16} className={m.color} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-on-surface font-mono leading-tight">{m.value}</p>
+                        <p className="text-[10px] text-on-surface-variant truncate leading-tight">{m.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Next Up to Learn */}
+              <div className="lg:w-80 flex-shrink-0 p-4 rounded-xl bg-surface-container/70 border border-outline-variant/30 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Target size={13} /> Next Up to Learn
+                    </span>
+                    {nextLesson && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        +{nextLesson.xp_reward || 50} XP
+                      </span>
+                    )}
+                  </div>
+                  {nextLesson ? (
+                    <div>
+                      <p className="text-[11px] text-on-surface-variant font-mono truncate">{nextLesson.course_title}</p>
+                      <h3 className="text-sm font-bold text-on-surface line-clamp-2 mt-0.5 mb-1.5">
+                        {nextLesson.title}
+                      </h3>
+                      <p className="text-xs text-on-surface-variant flex items-center gap-2 font-mono">
+                        <Clock size={12} /> {nextLesson.duration || '10 min'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="text-sm font-bold text-on-surface mb-1">
+                        {totalCompletedLessons > 0 ? 'All Enrolled Lessons Completed!' : 'Start Learning'}
+                      </h3>
+                      <p className="text-xs text-on-surface-variant">
+                        {totalCompletedLessons > 0 ? 'Great job! Take quizzes to claim your certificates.' : 'Choose any course below to begin your coding journey.'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-outline-variant/20">
+                  {nextLesson ? (
+                    <Link
+                      to={`/lessons/${nextLesson.id}`}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-md hover:shadow-blue-500/20 transition-all cursor-pointer"
+                    >
+                      <Play size={13} className="fill-white" /> Resume Lesson
+                    </Link>
+                  ) : enrolledCourses[0] ? (
+                    <Link
+                      to={`/courses/${enrolledCourses[0].id}`}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 transition-all cursor-pointer"
+                    >
+                      View Course <ArrowRight size={13} />
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/courses"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 transition-all cursor-pointer"
+                    >
+                      Browse Catalog <ArrowRight size={13} />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </GlassPanel>
+        </motion.div>
+      )}
 
       {/* Main Content Area: Enrolled Courses OR Selection Flow */}
       {enrolledCourses.length === 0 ? (
@@ -326,8 +463,8 @@ export default function Dashboard() {
         /* Active Enrolled Courses */
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-on-surface flex items-center gap-2">
-              <Play size={18} className="text-primary" />
+            <h2 className="text-base sm:text-lg font-semibold text-on-surface flex items-center gap-2">
+              <Play size={17} className="text-primary" />
               Your Active Courses ({enrolledCourses.length})
             </h2>
             <Link
@@ -363,7 +500,9 @@ export default function Dashboard() {
 
                   <div className="mt-auto space-y-2.5 pt-3 border-t border-outline-variant/15">
                     <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="text-on-surface-variant">Progress</span>
+                      <span className="text-on-surface-variant">
+                        {course.completed_lessons !== undefined ? `${course.completed_lessons} of ${course.lessons_count || 0} lessons` : 'Progress'}
+                      </span>
                       <span className="text-primary font-bold">{course.progress || 0}%</span>
                     </div>
                     <ProgressBar value={course.progress || 0} color="primary" size="sm" />

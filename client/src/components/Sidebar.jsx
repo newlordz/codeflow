@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.to;
@@ -142,7 +142,7 @@ export default function Sidebar({ isOpen, onClose }) {
               </Link>
             </div>
           ) : (
-            <div className="space-y-3 max-h-36 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-36 overflow-y-auto pr-1 custom-scrollbar">
               {enrolledCourses.map((course) => (
                 <Link
                   key={course.id}

@@ -376,16 +376,16 @@
   scrollbar-color: #3a4156 transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
-  border-radius: 8px;
-  border: 2px solid transparent;
+  border-radius: 9999px;
+  border: 1px solid transparent;
   background-clip: content-box;
 }
 .dark *::-webkit-scrollbar-thumb {
@@ -396,6 +396,35 @@
 }
 .dark *::-webkit-scrollbar-thumb:hover {
   background-color: #566079;
+}
+
+/* Slim in-component scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+.dark .custom-scrollbar {
+  scrollbar-color: rgba(140, 144, 159, 0.35) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 144, 159, 0.35);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.6);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(140, 144, 159, 0.6);
 }
 
 /* ---------- Lesson prose ---------- */

@@ -41,12 +41,14 @@ export default function Layout({ children }) {
       <div className="flex pt-16">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <motion.main
-          className="flex-1 min-h-[calc(100vh-4rem)] ml-0 lg:ml-[260px] p-4 md:p-6 lg:p-8 transition-all duration-300"
+          className="flex-1 min-h-[calc(100vh-4rem)] ml-0 lg:ml-64 w-full min-w-0 p-4 sm:p-6 lg:p-8 transition-all duration-300"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
         >
-          {children}
+          <div className="max-w-7xl mx-auto w-full">
+            {children}
+          </div>
         </motion.main>
       </div>
 
