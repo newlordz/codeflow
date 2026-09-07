@@ -14,11 +14,16 @@ import {
   AlertCircle,
   Sparkles,
   Bot,
+  Layers,
+  Users,
+  Share2,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CodeEditor from '../components/CodeEditor';
 import GlassPanel from '../components/GlassPanel';
 import FlowAIMentor from '../components/FlowAIMentor';
+import CodeVisualizer from '../components/CodeVisualizer';
 import { useApi } from '../hooks/useApi';
 
 const languages = [
@@ -181,9 +186,59 @@ export default function CodePlayground() {
   const [copied, setCopied] = useState(false);
   const [duration, setDuration] = useState(null);
   const [isSuccess, setIsSuccess] = useState(true);
-  const [activeTab, setActiveTab] = useState('console'); // 'console' | 'preview'
+  const [activeTab, setActiveTab] = useState('console'); // 'console' | 'preview' | 'visualizer'
   const [htmlPreviewCode, setHtmlPreviewCode] = useState(templates['html']);
   const [showAiMentor, setShowAiMentor] = useState(false);
+  const [collabRoom, setCollabRoom] = useState(null);
+  const [showCollabModal, setShowCollabModal] = useState(false);
+  const [joinRoomInput, setJoinRoomInput] = useState('');
+
+  // Collaboration Heartbeat & Code Sync
+  useEffect(() => {
+    if (!collabRoom?.code) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await post('/collab/sync', {
+          roomCode: collabRoom.code,
+          content: code,
+          language
+        });
+        if (res?.room?.participants) {
+          setCollabRoom((prev) => ({ ...prev, participants: res.room.participants }));
+        }
+      } catch {}
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [collabRoom?.code, code, language, post]);
+
+  const handleCreateRoom = async () => {
+    try {
+      const res = await post('/collab/create', { initialCode: code, language });
+      if (res?.roomCode) {
+        setCollabRoom(res.room);
+        setShowCollabModal(false);
+        toast.success(`Pair Room Live: ${res.roomCode}`, { icon: '🤝' });
+      }
+    } catch {
+      toast.error('Failed to create room.');
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!joinRoomInput.trim()) return;
+    try {
+      const res = await post('/collab/join', { roomCode: joinRoomInput.trim() });
+      if (res?.room) {
+        setCollabRoom(res.room);
+        if (res.room.content) setCode(res.room.content);
+        if (res.room.language) setLanguage(res.room.language);
+        setShowCollabModal(false);
+        toast.success(`Connected to room ${res.roomCode}!`, { icon: '🚀' });
+      }
+    } catch (err) {
+      toast.error(err.message || 'Could not find active room.');
+    }
+  };
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -314,6 +369,18 @@ export default function CodePlayground() {
               <span>Ask FlowAI</span>
             </button>
             <button
+              onClick={() => setShowCollabModal(true)}
+              className={`px-3.5 py-2 text-xs rounded-xl border font-semibold flex items-center gap-1.5 transition-all shadow-xs ${
+                collabRoom
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                  : 'bg-surface-container hover:bg-surface-container-high text-on-surface border-outline-variant/30'
+              }`}
+              title="Live Collaborative Pair Programming"
+            >
+              <Users size={14} className={collabRoom ? 'text-emerald-400' : 'text-primary'} />
+              <span>{collabRoom ? `Room: ${collabRoom.code} (${collabRoom.participants?.length || 1})` : 'Pair Code'}</span>
+            </button>
+            <button
               onClick={handleRun}
               disabled={running}
               className="btn-primary px-5 py-2 text-xs rounded-xl shadow-md flex items-center gap-1.5"
@@ -366,6 +433,17 @@ export default function CodePlayground() {
                   <Terminal size={13} /> Console Output
                 </button>
 
+                <button
+                  onClick={() => setActiveTab('visualizer')}
+                  className={`flex items-center gap-1.5 text-xs font-mono font-semibold px-2.5 py-1 rounded-lg transition-colors ${
+                    activeTab === 'visualizer'
+                      ? 'bg-blue-600/20 text-blue-400 border border-blue-500/40 shadow-xs'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <Layers size={13} className="text-blue-400" /> Visualizer
+                </button>
+
                 {(language === 'html' || language === 'css') && (
                   <button
                     onClick={() => setActiveTab('preview')}
@@ -408,7 +486,11 @@ export default function CodePlayground() {
 
             {/* Terminal Body */}
             <div className="flex-1 bg-slate-950 text-slate-100 overflow-auto relative">
-              {activeTab === 'console' ? (
+              {activeTab === 'visualizer' ? (
+                <div className="h-full">
+                  <CodeVisualizer customCode={code} customLanguage={language} />
+                </div>
+              ) : activeTab === 'console' ? (
                 output ? (
                   <pre className="p-4 text-xs sm:text-sm font-mono whitespace-pre-wrap leading-relaxed selection:bg-primary/30">
                     {output}
@@ -446,6 +528,115 @@ export default function CodePlayground() {
         contextTitle="Code Playground"
         onApplyCode={(c) => setCode(c)}
       />
+
+      {/* Collaborative Pairing Modal */}
+      <AnimatePresence>
+        {showCollabModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md bg-[#0f1422] border border-[#2b354d] rounded-2xl p-6 shadow-2xl space-y-5 text-slate-200"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md">
+                    <Users size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white leading-tight">Live Pair Programming</h3>
+                    <p className="text-[11px] text-slate-400">Share code buffer in real-time with a peer</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCollabModal(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {collabRoom ? (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-[#141b2e] border border-emerald-500/30 text-center space-y-2">
+                    <span className="text-xs text-slate-400 block font-mono">ACTIVE ROOM CODE</span>
+                    <span className="text-2xl font-mono font-extrabold text-emerald-400 tracking-wider">
+                      {collabRoom.code}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(collabRoom.code);
+                        toast.success('Room code copied!');
+                      }}
+                      className="text-[11px] text-sky-400 hover:underline block mx-auto font-mono"
+                    >
+                      Copy Room Code
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-xs font-semibold text-slate-300 block">Connected Coders:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {collabRoom.participants?.map((p, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 rounded-lg bg-[#141b2e] border border-[#2b354d] text-xs font-mono text-white flex items-center gap-2"
+                        >
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#38bdf8' }} />
+                          {p.username}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setCollabRoom(null);
+                      toast('Left pair room session.');
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition-colors"
+                  >
+                    Disconnect Session
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <button
+                    onClick={handleCreateRoom}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    <Sparkles size={15} />
+                    <span>Create Instant Study Room</span>
+                  </button>
+
+                  <div className="flex items-center gap-2 my-2 text-[11px] text-slate-500 font-mono justify-center">
+                    <span className="h-px bg-[#2b354d] flex-1" />
+                    <span>OR JOIN EXISTING ROOM</span>
+                    <span className="h-px bg-[#2b354d] flex-1" />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={joinRoomInput}
+                      onChange={(e) => setJoinRoomInput(e.target.value.toUpperCase())}
+                      placeholder="Enter Code (e.g. CF-9481)"
+                      className="flex-1 bg-[#090d16] border border-[#2b354d] rounded-xl px-3.5 py-2.5 text-xs text-white uppercase font-mono placeholder:normal-case outline-none focus:border-emerald-500"
+                    />
+                    <button
+                      onClick={handleJoinRoom}
+                      className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-colors"
+                    >
+                      Join
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

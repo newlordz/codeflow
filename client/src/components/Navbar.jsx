@@ -12,12 +12,14 @@ import {
   Shield,
   Bot,
   Sparkles,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApi } from '../hooks/useApi';
 import ThemeToggle from './ThemeToggle';
 import StreakBadge from './StreakBadge';
+import FocusStudio from './FocusStudio';
 
 export default function Navbar({ onMenuToggle, onOpenAi }) {
   const { user, logout } = useAuth();
@@ -27,6 +29,7 @@ export default function Navbar({ onMenuToggle, onOpenAi }) {
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [showFocusStudio, setShowFocusStudio] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -138,6 +141,14 @@ export default function Navbar({ onMenuToggle, onOpenAi }) {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           </button>
 
+          <button
+            onClick={() => setShowFocusStudio(true)}
+            className="p-2 rounded-md hover:bg-surface-container-high transition-colors text-indigo-400 hover:text-indigo-300 relative"
+            title="Focus & Sensory Audio Studio (Lo-Fi + Pomodoro)"
+          >
+            <Headphones size={18} />
+          </button>
+
           <ThemeToggle />
           <StreakBadge count={user?.streak || 0} size="sm" />
 
@@ -231,6 +242,9 @@ export default function Navbar({ onMenuToggle, onOpenAi }) {
           </div>
         </div>
       </div>
+
+      {/* Focus & Sensory Audio Studio Modal */}
+      <FocusStudio isOpen={showFocusStudio} onClose={() => setShowFocusStudio(false)} />
     </nav>
   );
 }

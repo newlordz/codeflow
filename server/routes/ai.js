@@ -4,7 +4,7 @@ const router = Router();
 
 // Primary and fallback models supported by Google Generative Language API
 const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-const FALLBACK_GEMINI_MODEL = 'gemini-3.6-flash';
+const FALLBACK_GEMINI_MODEL = 'gemini-1.5-flash';
 
 // Health and configuration status endpoint
 router.get('/status', (req, res) => {
@@ -91,7 +91,10 @@ Guidelines:
 5. For "debug": Pinpoint bugs or syntax flaws directly, explain the root cause, and show the clean fix.
 6. For "hint": Offer smart conceptual nudges without immediately spoiling the complete final answer.
 7. For "optimize": Discuss time and space complexity (e.g. Big-O notation) and idiomatic clean coding patterns.
-8. Be interactive: Conclude with a helpful question or next step suggestion to keep the student engaged.`;
+8. For "review": Provide a formal Code Review audit with scores: Code Cleanliness (/10), Safety & Edge Cases (/10), Scalability (/10), followed by constructive suggestions and a refactored clean version.
+9. For "complexity": Provide a rigorous Big-O Time & Space Complexity analysis. State the Worst Case O(...), Best Case Ω(...), and Space Complexity. Explain why line by line, point out the primary bottleneck loop/recursion, and show how to optimize it.
+10. For "roast": Deliver a hilarious, witty, lighthearted "Gordon Ramsay of Coding / Sarcastic Senior Architect" roast of the code! Roast bad variable names, repetitive code, inefficient nested loops, lack of comments or ridiculous over-engineering. Keep it humorous, entertaining, and punchy, but conclude with a short respectful "How to Redeem Yourself" section.
+11. Be interactive: Conclude with a helpful question or next step suggestion to keep the student engaged.`;
 
   // Build conversational turns for multi-turn chat
   const contents = buildGeminiContents({ history, prompt, code, language, context, action });
@@ -118,7 +121,7 @@ Guidelines:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(10000)
+        signal: AbortSignal.timeout(25000)
       });
 
       if (!response.ok) {
@@ -229,6 +232,12 @@ function getDefaultActionPrompt(action) {
       return 'Give me a helpful hint for this challenge without giving away the complete solution.';
     case 'optimize':
       return 'How can I optimize this code for better time/space complexity and cleaner style?';
+    case 'review':
+      return 'Please perform an in-depth code review with quality scores, edge-case analysis, and refactoring tips.';
+    case 'complexity':
+      return 'Calculate and explain the exact Big-O Time and Space complexity for this code with tight mathematical bounds.';
+    case 'roast':
+      return 'Roast my code with sarcastic humor like a grumpy senior tech lead, but give me actionable redemption tips!';
     default:
       return 'Help me understand and improve my code for this lesson.';
   }
@@ -241,6 +250,93 @@ function getDefaultActionPrompt(action) {
 function generateExpertTutorResponse({ prompt, code, language, context, action }) {
   const lang = (language || 'Python').toLowerCase();
   const trimmedCode = (code || '').trim();
+
+  if (action === 'review') {
+    if (!trimmedCode) {
+      return `### 🧐 Deep Code Review\n\nNo code found in the editor! Paste your code to receive a comprehensive multi-factor quality audit.`;
+    }
+    const lineCount = trimmedCode.split('\n').length;
+    const hasLoops = trimmedCode.includes('for') || trimmedCode.includes('while');
+    const hasFunctions = trimmedCode.includes('def') || trimmedCode.includes('function') || trimmedCode.includes('=>');
+    const cleanScore = Math.min(9, Math.max(6, Math.floor(10 - (lineCount > 50 ? 2 : 0) - (hasLoops ? 0 : 1))));
+
+    return `### 🧐 FlowAI Code Review Audit
+**Target Language**: ${language} | **Module**: ${context || 'General'}
+
+#### 📊 Code Quality Scorecard
+| Metric | Rating | Status |
+| :--- | :--- | :--- |
+| **Cleanliness & Idioms** | **${cleanScore}/10** | ${cleanScore >= 8 ? '🌟 Excellent' : '🔧 Good, can polish'} |
+| **Safety & Error Handling** | **7/10** | ⚠️ Add parameter guards for null/empty values |
+| **Scalability & Big-O** | **${hasLoops ? '7.5/10' : '9/10'}** | ${hasLoops ? 'Check loop termination conditions' : 'Linear / constant operations'} |
+
+---
+
+#### 🔍 Critical Observations
+1. **Modularity**: ${hasFunctions ? 'Good job encapsulating operations inside functions for reusability.' : 'Consider wrapping your logic into a dedicated function for testing and clean exports.'}
+2. **Naming Conventions**: Keep identifier names semantic (e.g. \`targetItem\` instead of single-character variables).
+3. **Defensive Programming**: Validate incoming inputs against undefined, NaN, or out-of-bounds boundary values before indexing.
+
+#### 💡 Refactoring Recommendation
+Ensure return types are explicit and consistent across all execution branches.`;
+  }
+
+  if (action === 'complexity') {
+    if (!trimmedCode) {
+      return `### ⚡ Big-O Complexity Auditor\n\nWrite or paste some code to compute its Time and Space complexity!`;
+    }
+    const forCount = (trimmedCode.match(/for\s+/g) || []).length;
+    const whileCount = (trimmedCode.match(/while\s+/g) || []).length;
+    const totalLoops = forCount + whileCount;
+    let timeComp = 'O(1)';
+    let spaceComp = 'O(1)';
+
+    if (totalLoops === 1) {
+      timeComp = 'O(n)';
+    } else if (totalLoops >= 2) {
+      timeComp = 'O(n²)';
+    }
+    if (trimmedCode.includes('.push') || trimmedCode.includes('.append') || trimmedCode.includes('[x for') || trimmedCode.includes('new Array')) {
+      spaceComp = 'O(n)';
+    }
+
+    return `### ⚡ Big-O Complexity Analysis
+**Language**: ${language}
+
+#### ⏱️ Mathematical Bounds
+- **Time Complexity (Worst Case)**: \`${timeComp}\`
+  - *Reasoning*: Detected ${totalLoops === 0 ? 'no loops; execution occurs in constant sequential cycles' : totalLoops === 1 ? '1 main loop iterating over the dataset of size n' : `${totalLoops} loop constructs which may yield quadratic operations in the worst case`}.
+- **Auxiliary Space Complexity**: \`${spaceComp}\`
+  - *Reasoning*: ${spaceComp === 'O(1)' ? 'No significant auxiliary data structures allocated in memory.' : 'Dynamic collections grow proportionally with input size.'}
+
+---
+
+#### 🚀 Optimization Hotspots
+${totalLoops > 1 ? '- **Nested Iteration**: Investigate if a Hash Map / Set lookup can reduce quadratic `O(n²)` down to linear `O(n)`.' : '- **Constant Overhead**: Your operations are already well-bounded. Keep memory allocations close to the point of use.'}
+- **Cache Locality**: Access arrays sequentially to maximize hardware CPU L1/L2 cache utilization.`;
+  }
+
+  if (action === 'roast') {
+    if (!trimmedCode) {
+      return `### 🔥 Roast My Code\n\n*Looking at an empty editor...*\n\n"You know what's worse than bad code? **NO CODE AT ALL!** What am I supposed to roast, the invisible whitespace? Type something first!"`;
+    }
+    const lines = trimmedCode.split('\n').length;
+    const hasConsole = trimmedCode.includes('console.log') || trimmedCode.includes('print');
+    
+    return `### 🔥 Roast My Code: Senior Architect Edition
+*"Oh boy... let's see what we're deploying to production today."*
+
+${lines > 25 ? `1. **The Great Wall of Code**: ${lines} lines for this? Homer's Odyssey was shorter than your function.` : '1. **Brevity or Laziness?**: This code is shorter than a tweet, yet somehow still manages to raise my blood pressure.'}
+${hasConsole ? `2. **Print-Driven Development**: Look at those debug statements! I see you use \`print\` / \`console.log\` like sonar in a submarine. Have you heard of a debugger, or do you just like spamming terminal stdout?` : `2. **Silent But Deadly**: Zero log statements and zero error checks. You really trust your users that much? Courageous, or just wildly reckless.`}
+3. **Variable Names**: If I showed this to our CI/CD pipeline, the server would probably crash out of sheer embarrassment.
+
+---
+
+#### 🏆 How to Redeem Yourself (Constructive Fix)
+- Extract multi-step calculations into pure single-responsibility helper functions.
+- Add typed boundary assertions or explicit error handling.
+- Don't worry — everyone starts here. Now refactor it and prove me wrong! 😉`;
+  }
 
   if (action === 'explain') {
     if (!trimmedCode) {

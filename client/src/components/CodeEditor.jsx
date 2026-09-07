@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { useTheme } from '../contexts/ThemeContext';
+import { soundEngine } from '../utils/soundEngine';
 
 export default function CodeEditor({
   language = 'javascript',
@@ -7,8 +9,19 @@ export default function CodeEditor({
   onChange,
   height = '100%',
   readOnly = false,
+  enableSound = true,
 }) {
   const { theme } = useTheme();
+  const editorRef = useRef(null);
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
+    if (enableSound) {
+      editor.onKeyDown((e) => {
+        soundEngine.playKeypress(e.browserEvent?.key || '');
+      });
+    }
+  };
 
   return (
     <div className="w-full h-full rounded-lg overflow-hidden border border-outline-variant/30 bg-surface">
@@ -17,6 +30,7 @@ export default function CodeEditor({
         language={language}
         value={value}
         onChange={onChange}
+        onMount={handleEditorDidMount}
         theme={theme === 'dark' ? 'vs-dark' : 'vs'}
         options={{
           minimap: { enabled: false },

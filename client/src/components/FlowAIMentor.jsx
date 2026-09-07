@@ -18,7 +18,10 @@ import {
   VolumeX,
   FileCode,
   CheckCircle2,
-  ListRestart
+  ListRestart,
+  Flame,
+  ShieldCheck,
+  Gauge
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApi } from '../hooks/useApi';
@@ -266,7 +269,34 @@ export default function FlowAIMentor({
               className="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/25 whitespace-nowrap flex items-center gap-1.5 transition-all font-medium disabled:opacity-50"
             >
               <Lightbulb size={13} />
-              <span>Explain Code</span>
+              <span>Explain</span>
+            </button>
+
+            <button
+              onClick={() => handleSend('review')}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/25 whitespace-nowrap flex items-center gap-1.5 transition-all font-medium disabled:opacity-50"
+            >
+              <ShieldCheck size={13} />
+              <span>Code Review</span>
+            </button>
+
+            <button
+              onClick={() => handleSend('complexity')}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/25 whitespace-nowrap flex items-center gap-1.5 transition-all font-medium disabled:opacity-50"
+            >
+              <Gauge size={13} />
+              <span>Big-O</span>
+            </button>
+
+            <button
+              onClick={() => handleSend('roast')}
+              disabled={loading}
+              className="px-3 py-1.5 rounded-lg bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30 whitespace-nowrap flex items-center gap-1.5 transition-all font-semibold disabled:opacity-50"
+            >
+              <Flame size={13} />
+              <span>Roast Code</span>
             </button>
 
             <button
@@ -275,7 +305,7 @@ export default function FlowAIMentor({
               className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/25 whitespace-nowrap flex items-center gap-1.5 transition-all font-medium disabled:opacity-50"
             >
               <Bug size={13} />
-              <span>Debug / Check</span>
+              <span>Debug</span>
             </button>
 
             <button
@@ -284,7 +314,7 @@ export default function FlowAIMentor({
               className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 whitespace-nowrap flex items-center gap-1.5 transition-all font-medium disabled:opacity-50"
             >
               <HelpCircle size={13} />
-              <span>Get Hint</span>
+              <span>Hint</span>
             </button>
 
             <button
@@ -710,6 +740,12 @@ function getActionLabel(action) {
   switch (action) {
     case 'explain':
       return '💡 Can you explain this code step-by-step?';
+    case 'review':
+      return '🧐 Can you give me a comprehensive code review with ratings?';
+    case 'complexity':
+      return '⚡ What is the Big-O Time and Space complexity of this code?';
+    case 'roast':
+      return '🔥 Roast my code like a senior architect!';
     case 'debug':
       return '🐞 Can you check this code for bugs, errors, or anti-patterns?';
     case 'hint':
@@ -723,6 +759,24 @@ function getActionLabel(action) {
 
 function getSuggestedQuestions(action, language) {
   switch (action) {
+    case 'review':
+      return [
+        'How can I improve the Cleanliness score?',
+        'Are there any security or memory leaks?',
+        'Refactor this into modern idiomatic style'
+      ];
+    case 'complexity':
+      return [
+        'Can this algorithm be reduced to O(1) space?',
+        'How does worst case compare to average case?',
+        'What data structure optimizes the inner loop?'
+      ];
+    case 'roast':
+      return [
+        'Okay, now show me the production-ready fix!',
+        'What is the single worst line in this code?',
+        'Rate my coding skills out of 10'
+      ];
     case 'explain':
       return [
         'Can you simplify this explanation?',

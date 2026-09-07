@@ -23,6 +23,9 @@ import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
 import CodeBattles from './pages/CodeBattles';
 import VerifyCertificate from './pages/VerifyCertificate';
+import SkillTree from './pages/SkillTree';
+import MockInterview from './pages/MockInterview';
+import PublicProfile from './pages/PublicProfile';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function ProtectedRoute({ children }) {
@@ -120,6 +123,10 @@ export default function App() {
           <Route
             path="/verify/:id"
             element={<VerifyCertificate />}
+          />
+          <Route
+            path="/dev/:username"
+            element={<PublicProfile />}
           />
           <Route
             path="/dashboard"
@@ -257,6 +264,26 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <CodeBattles />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-tree"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SkillTree />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <MockInterview />
                 </Layout>
               </ProtectedRoute>
             }

@@ -15,6 +15,8 @@ import {
   Plus,
   Trophy,
   Swords,
+  GitFork,
+  Bot,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useApi } from '../hooks/useApi';
@@ -23,6 +25,8 @@ import ProgressBar from './ProgressBar';
 const baseNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/courses', label: 'Courses', icon: BookOpen },
+  { to: '/skill-tree', label: 'Skill Tree', icon: GitFork, badge: 'RPG' },
+  { to: '/interview', label: 'AI Mock Interview', icon: Bot, badge: 'Pro' },
   { to: '/battles', label: 'Code Battles', icon: Swords },
   { to: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { to: '/playground', label: 'Code Playground', icon: Code2 },
@@ -103,6 +107,11 @@ export default function Sidebar({ isOpen, onClose }) {
                   className={isActive ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'}
                 />
                 <span className="flex-1">{item.label}</span>
+                {item.badge && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold uppercase">
+                    {item.badge}
+                  </span>
+                )}
                 {isActive && (
                   <motion.div
                     layoutId="activeNav"

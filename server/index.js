@@ -1,3 +1,6 @@
+// Clear any insecure TLS overrides from environment
+delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -54,6 +57,9 @@ import runnerRoutes from './routes/runner.js';
 import aiRoutes from './routes/ai.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import battleRoutes from './routes/battles.js';
+import interviewRoutes from './routes/interview.js';
+import publicProfileRoutes from './routes/publicProfile.js';
+import collabRoutes from './routes/collab.js';
 import { authMiddleware } from './middleware/auth.js';
 const clientDist = path.join(__dirname, '../client/dist');
 
@@ -65,8 +71,11 @@ app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/public', publicProfileRoutes);
 app.use('/api/runner', runnerRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
+app.use('/api/interview', authMiddleware, interviewRoutes);
+app.use('/api/collab', authMiddleware, collabRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/courses', authMiddleware, coursesRoutes);
 app.use('/api/lessons', authMiddleware, lessonsRoutes);
